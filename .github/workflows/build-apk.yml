@@ -9,6 +9,7 @@ on:
       - 'style.css'
       - 'app.js'
       - 'config.js'
+      - 'auth-institucional.js'
       - 'dashboard-institucional.js'
       - 'question-bank.js'
       - 'manifest.webmanifest'
@@ -50,7 +51,7 @@ jobs:
           set -e
           mkdir -p mobile/www/figurinhas mobile/www/icons
 
-          cp index.html style.css app.js config.js dashboard-institucional.js question-bank.js manifest.webmanifest service-worker.js mobile/www/
+          cp index.html style.css app.js config.js auth-institucional.js dashboard-institucional.js question-bank.js manifest.webmanifest service-worker.js mobile/www/
           cp logo-pedro-queiroz.jpg mobile/www/
 
           if [ -f qrcode_album_dupla_exclusao.png ]; then cp qrcode_album_dupla_exclusao.png mobile/www/; fi
