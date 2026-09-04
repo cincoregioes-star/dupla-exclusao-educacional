@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v8";
-const FULL = "dupla-exclusao-full-v8";
+const CORE = "dupla-exclusao-core-v9";
+const FULL = "dupla-exclusao-full-v9";
 
 const core = [
   "./",
@@ -10,28 +10,34 @@ const core = [
   "dashboard-institucional.js",
   "question-bank.js",
   "manifest.webmanifest",
-  "icons/icon-192.png",
-  "icons/icon-512.png",
-  "logo-pedro-queiroz.jpg"
+  "logo-pedro-queiroz.jpg",
+  "icon-192.png",
+  "icon-512.png"
 ];
 
 const stickers = Array.from({ length: 36 }, (_, i) =>
-  `figurinhas/${String(i + 1).padStart(2, "0")}.webp`
+  `${String(i + 1).padStart(2, "0")}.webp`
 );
 
-const fullOffline = [
-  ...core,
+const optionalOffline = [
   ...stickers,
-  "game/index.html",
   "qrcode_album_dupla_exclusao.png",
   "qrcode-album-dupla-exclusao.png"
 ];
 
+async function addIndividually(cacheName, assets){
+  const cache = await caches.open(cacheName);
+  await Promise.allSettled(assets.map(async asset => {
+    try {
+      const response = await fetch(asset, { cache: "reload" });
+      if (response.ok) await cache.put(asset, response.clone());
+    } catch (_) {}
+  }));
+}
+
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CORE)
-      .then(cache => cache.addAll(core))
-      .then(() => self.skipWaiting())
+    addIndividually(CORE, core).then(() => self.skipWaiting())
   );
 });
 
@@ -45,25 +51,45 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+  const isCode = url.origin === self.location.origin && (
+    event.request.mode === "navigate" ||
+    /\.(?:html|js|css|json|webmanifest)$/i.test(url.pathname)
+  );
+
+  if (isCode) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CORE).then(cache => cache.put(event.request, copy)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then(hit => hit || caches.match("index.html")))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(hit =>
-      hit || fetch(event.request).then(response => {
+    caches.match(event.request).then(hit => hit || fetch(event.request).then(response => {
+      if (response.ok && url.origin === self.location.origin) {
         const copy = response.clone();
-        caches.open(CORE).then(cache => cache.put(event.request, copy)).catch(() => {});
-        return response;
-      }).catch(() => caches.match("./index.html"))
-    )
+        caches.open(FULL).then(cache => cache.put(event.request, copy)).catch(() => {});
+      }
+      return response;
+    }))
   );
 });
 
 self.addEventListener("message", event => {
   if (event.data?.type === "CACHE_OFFLINE_FULL") {
     event.waitUntil(
-      caches.open(FULL)
-        .then(cache => cache.addAll(fullOffline))
+      addIndividually(FULL, [...core, ...optionalOffline])
         .then(() => self.clients.matchAll({ type: "window" }))
         .then(clients => clients.forEach(client => client.postMessage({ type: "OFFLINE_READY" })))
-        .catch(err => console.warn("Falha ao preparar cache offline completo:", err))
     );
   }
 });
