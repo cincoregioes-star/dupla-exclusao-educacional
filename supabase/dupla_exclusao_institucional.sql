@@ -1,5 +1,5 @@
 -- Dupla Exclusão — estrutura institucional Supabase
--- Execute como migration no projeto escolhido.
+-- Perfis: admin, gestor, coordenador e professor.
 
 create extension if not exists pgcrypto;
 
@@ -43,8 +43,7 @@ create table if not exists public.survey_responses (
   survey_title text not null,
   responses jsonb not null default '[]'::jsonb,
   completed_at timestamptz not null default now(),
-  created_at timestamptz not null default now(),
-  unique(student_code, survey_id)
+  created_at timestamptz not null default now()
 );
 
 create index if not exists idx_attempts_student on public.student_attempts(student_code);
@@ -53,120 +52,149 @@ create index if not exists idx_attempts_school on public.student_attempts(school
 create index if not exists idx_attempts_sim on public.student_attempts(simulado_id);
 create index if not exists idx_surveys_student on public.survey_responses(student_code);
 create index if not exists idx_surveys_class on public.survey_responses(class_group);
+create index if not exists idx_surveys_school on public.survey_responses(school_code);
 create index if not exists idx_users_role on public.institutional_users(role);
 
-create or replace function public.current_institutional_profile()
-returns public.institutional_users
+-- Funções SECURITY DEFINER evitam recursão de RLS ao consultar o próprio perfil.
+create or replace function public.current_institutional_role()
+returns text
 language sql
 stable
 security definer
 set search_path = public
 as $$
-  select * from public.institutional_users where user_id = auth.uid() and active = true limit 1;
+  select role
+  from public.institutional_users
+  where user_id = auth.uid() and active = true
+  limit 1;
 $$;
 
-grant execute on function public.current_institutional_profile() to authenticated;
+create or replace function public.current_institutional_school()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select school_code
+  from public.institutional_users
+  where user_id = auth.uid() and active = true
+  limit 1;
+$$;
+
+create or replace function public.current_institutional_classes()
+returns text[]
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select class_groups
+  from public.institutional_users
+  where user_id = auth.uid() and active = true
+  limit 1;
+$$;
+
+grant execute on function public.current_institutional_role() to authenticated;
+grant execute on function public.current_institutional_school() to authenticated;
+grant execute on function public.current_institutional_classes() to authenticated;
 
 alter table public.institutional_users enable row level security;
 alter table public.student_attempts enable row level security;
 alter table public.survey_responses enable row level security;
 
--- Usuário autenticado lê apenas o próprio perfil institucional.
+-- PERFIS INSTITUCIONAIS
+-- Cada usuário lê o próprio perfil.
 drop policy if exists institutional_users_self_read on public.institutional_users;
 create policy institutional_users_self_read
 on public.institutional_users for select
 to authenticated
 using (user_id = auth.uid());
 
--- Administrador pode visualizar todos os perfis.
+-- Administrador pode ler todos os perfis institucionais.
 drop policy if exists institutional_users_admin_read on public.institutional_users;
 create policy institutional_users_admin_read
 on public.institutional_users for select
 to authenticated
-using ((select role from public.institutional_users iu where iu.user_id = auth.uid() and iu.active = true) = 'admin');
+using (public.current_institutional_role() = 'admin');
 
--- Resultados: qualquer dispositivo anon pode inserir, mas nunca ler dados gerais.
-drop policy if exists attempts_anon_insert on public.student_attempts;
-create policy attempts_anon_insert
+-- RESULTADOS DOS SIMULADOS
+-- Tablets/alunos podem enviar resultados, mas não ler o conjunto institucional.
+drop policy if exists attempts_device_insert on public.student_attempts;
+create policy attempts_device_insert
 on public.student_attempts for insert
 to anon, authenticated
-with check (student_code is not null and class_group is not null and school_code = 'PQF');
+with check (
+  student_code is not null
+  and class_group is not null
+  and school_code = 'PQF'
+  and simulado_id between 1 and 10
+  and total > 0
+  and score between 0 and total
+);
 
--- Admin, gestor e coordenação visualizam toda a escola.
+-- Admin, gestor e coordenador veem todos os resultados da escola vinculada.
 drop policy if exists attempts_management_read on public.student_attempts;
 create policy attempts_management_read
 on public.student_attempts for select
 to authenticated
 using (
-  exists (
-    select 1 from public.institutional_users iu
-    where iu.user_id = auth.uid() and iu.active = true
-      and iu.school_code = student_attempts.school_code
-      and iu.role in ('admin','gestor','coordenador')
-  )
+  public.current_institutional_role() in ('admin','gestor','coordenador')
+  and public.current_institutional_school() = student_attempts.school_code
 );
 
--- Professor visualiza apenas turmas vinculadas ao seu cadastro.
+-- Professor vê somente suas turmas vinculadas.
 drop policy if exists attempts_teacher_read on public.student_attempts;
 create policy attempts_teacher_read
 on public.student_attempts for select
 to authenticated
 using (
-  exists (
-    select 1 from public.institutional_users iu
-    where iu.user_id = auth.uid() and iu.active = true
-      and iu.school_code = student_attempts.school_code
-      and iu.role = 'professor'
-      and student_attempts.class_group = any(iu.class_groups)
-  )
+  public.current_institutional_role() = 'professor'
+  and public.current_institutional_school() = student_attempts.school_code
+  and student_attempts.class_group = any(coalesce(public.current_institutional_classes(), array[]::text[]))
 );
 
--- Pesquisas: dispositivos podem registrar/atualizar apenas pela chave aluno+pesquisa.
-drop policy if exists surveys_insert on public.survey_responses;
-create policy surveys_insert
+-- PESQUISAS
+-- Dispositivos inserem respostas. Não existe UPDATE anônimo para impedir alteração
+-- de respostas de outro aluno que conheça apenas código/turma.
+drop policy if exists surveys_device_insert on public.survey_responses;
+create policy surveys_device_insert
 on public.survey_responses for insert
 to anon, authenticated
-with check (student_code is not null and class_group is not null and school_code = 'PQF');
+with check (
+  student_code is not null
+  and class_group is not null
+  and school_code = 'PQF'
+  and survey_id in ('convivencia','didatica')
+);
 
-drop policy if exists surveys_update on public.survey_responses;
-create policy surveys_update
-on public.survey_responses for update
-to anon, authenticated
-using (school_code = 'PQF')
-with check (school_code = 'PQF');
-
--- Admin, gestor e coordenação visualizam pesquisas da escola.
+-- Admin, gestor e coordenador veem todas as pesquisas da escola.
 drop policy if exists surveys_management_read on public.survey_responses;
 create policy surveys_management_read
 on public.survey_responses for select
 to authenticated
 using (
-  exists (
-    select 1 from public.institutional_users iu
-    where iu.user_id = auth.uid() and iu.active = true
-      and iu.school_code = survey_responses.school_code
-      and iu.role in ('admin','gestor','coordenador')
-  )
+  public.current_institutional_role() in ('admin','gestor','coordenador')
+  and public.current_institutional_school() = survey_responses.school_code
 );
 
--- Professor visualiza pesquisas apenas das turmas vinculadas.
+-- Professor vê apenas pesquisas de suas turmas vinculadas.
 drop policy if exists surveys_teacher_read on public.survey_responses;
 create policy surveys_teacher_read
 on public.survey_responses for select
 to authenticated
 using (
-  exists (
-    select 1 from public.institutional_users iu
-    where iu.user_id = auth.uid() and iu.active = true
-      and iu.school_code = survey_responses.school_code
-      and iu.role = 'professor'
-      and survey_responses.class_group = any(iu.class_groups)
-  )
+  public.current_institutional_role() = 'professor'
+  and public.current_institutional_school() = survey_responses.school_code
+  and survey_responses.class_group = any(coalesce(public.current_institutional_classes(), array[]::text[]))
 );
 
--- Atualiza updated_at dos perfis.
+-- Atualização automática de updated_at.
 create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
+returns trigger
+language plpgsql
+set search_path = public
+as $$
 begin
   new.updated_at = now();
   return new;
@@ -178,6 +206,5 @@ create trigger trg_institutional_users_updated
 before update on public.institutional_users
 for each row execute function public.set_updated_at();
 
--- Observação:
--- As contas de login devem ser criadas no Supabase Auth e depois vinculadas aqui
--- pelo mesmo UUID em institutional_users.user_id.
+-- As contas são criadas em Supabase Auth. Depois, o UUID de auth.users.id
+-- deve ser cadastrado em institutional_users.user_id com o perfil adequado.
