@@ -9,15 +9,38 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Identidade do título inspirada na versão premium */
+    .premium-brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:260px;background:none;border:0;color:var(--text);padding:0;text-align:left}
+    .premium-brand .brand-icon{display:none}
+    .premium-badge{display:inline-block;background:#facc15;color:#111827;font-size:.66rem;font-weight:900;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;line-height:1.2}
+    .premium-brand-copy strong{display:block;margin-top:1px;color:#facc15;font-size:1.18rem;font-weight:900;line-height:1;text-transform:uppercase;letter-spacing:.01em}
+    .premium-brand-copy small{display:block;margin-top:3px;max-width:430px;color:#f8fafc;font-size:.72rem;line-height:1.15;font-weight:500}
+    .premium-brand-copy small b{font-weight:800}
+    .premium-title-block{display:inline-block;max-width:980px;background:#020617;border:1px solid rgba(250,204,21,.38);border-left:4px solid #facc15;border-radius:0 18px 18px 0;padding:18px 22px 17px;box-shadow:0 14px 35px rgba(0,0,0,.32)}
+    .premium-title-block h1{margin:6px 0 9px!important;color:#facc15!important;font-size:clamp(2.45rem,6vw,5.2rem)!important;font-weight:900!important;line-height:.9!important;text-transform:uppercase;letter-spacing:-.025em}
+    .premium-title-block h2{margin:0!important;color:#fff!important;font-size:clamp(1.15rem,2.4vw,2rem)!important;line-height:1.08!important;font-weight:900}
+    .premium-official-name{margin:5px 0 0!important;color:#e2e8f0!important;font-size:clamp(.95rem,1.5vw,1.2rem)!important;line-height:1.25!important;max-width:900px!important}
+    .hero-description{margin-top:18px!important}
+    @media (max-width:760px){
+      .premium-brand{min-width:0;max-width:calc(100vw - 90px)}
+      .premium-brand-copy strong{font-size:1.02rem}
+      .premium-brand-copy small{font-size:.66rem;max-width:270px}
+      .premium-title-block{display:block;padding:15px 16px 14px;border-radius:0 14px 14px 0}
+      .premium-title-block h1{font-size:clamp(2rem,11vw,3.2rem)!important}
+      .premium-title-block h2{font-size:clamp(1.05rem,5.2vw,1.35rem)!important}
+      .premium-official-name{font-size:.92rem!important}
+    }
+  </style>
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <button class="brand-button" data-screen="home" aria-label="Ir para início">
-      <img src="icons/icon-192.png" class="brand-icon" alt="">
-      <span>
+    <button class="brand-button premium-brand" data-screen="home" aria-label="Ir para início">
+      <span class="premium-badge">Edição Municipal</span>
+      <span class="premium-brand-copy">
         <strong>Dupla Exclusão</strong>
-        <small>Entre a cor e a condição</small>
+        <small><b>Entre a cor e a condição:</b> A realidade dos estudantes negros com deficiência na escola</small>
       </span>
     </button>
     <button id="menuBtn" class="menu-btn" aria-label="Abrir menu">☰</button>
@@ -36,10 +59,13 @@
     <section id="screen-home" class="screen active">
       <div class="hero">
         <div class="hero-copy">
-          <span class="eyebrow">ÁLBUM DIGITAL EDUCATIVO • OFFLINE</span>
-          <h1>Dupla Exclusão</h1>
-          <h2>Entre a cor e a condição: A realidade dos estudantes negros com deficiência na escola</h2>
-          <p>Uma experiência educativa com álbum de 36 figurinhas, banco de 150 questões, 10 simulados, game e acompanhamento pedagógico.</p>
+          <div class="premium-title-block">
+            <span class="premium-badge">Edição Municipal</span>
+            <h1>Dupla Exclusão</h1>
+            <h2>Entre a cor e a condição:</h2>
+            <p class="premium-official-name">A realidade dos estudantes negros com deficiência na escola</p>
+          </div>
+          <p class="hero-description">Uma experiência educativa com álbum de 36 figurinhas, banco de 150 questões, 10 simulados, game e acompanhamento pedagógico.</p>
           <div class="hero-actions">
             <button class="primary" data-screen="perfil">Começar / Identificar aluno</button>
             <button class="secondary" id="prepareOfflineBtn">Preparar uso offline</button>
