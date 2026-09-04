@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v9";
-const FULL = "dupla-exclusao-full-v9";
+const CORE = "dupla-exclusao-core-v10";
+const FULL = "dupla-exclusao-full-v10";
 
 const core = [
   "./",
@@ -7,6 +7,7 @@ const core = [
   "style.css",
   "app.js",
   "config.js",
+  "auth-institucional.js",
   "dashboard-institucional.js",
   "question-bank.js",
   "manifest.webmanifest",
