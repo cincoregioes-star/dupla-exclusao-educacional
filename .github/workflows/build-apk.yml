@@ -1,0 +1,134 @@
+name: Build APK Dupla Exclusao
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'style.css'
+      - 'app.js'
+      - 'config.js'
+      - 'question-bank.js'
+      - 'manifest.webmanifest'
+      - 'service-worker.js'
+      - 'logo-pedro-queiroz.jpg'
+      - 'icon-192.png'
+      - 'icon-512.png'
+      - '*.webp'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Montar projeto web para o APK
+        shell: bash
+        run: |
+          set -e
+          mkdir -p mobile/www/figurinhas mobile/www/icons
+
+          cp index.html style.css app.js config.js question-bank.js manifest.webmanifest service-worker.js mobile/www/
+          cp logo-pedro-queiroz.jpg mobile/www/
+
+          if [ -f qrcode_album_dupla_exclusao.png ]; then cp qrcode_album_dupla_exclusao.png mobile/www/; fi
+          if [ -f qrcode-album-dupla-exclusao.png ]; then cp qrcode-album-dupla-exclusao.png mobile/www/; fi
+
+          cp icon-192.png mobile/www/icons/icon-192.png
+          cp icon-512.png mobile/www/icons/icon-512.png
+
+          for i in $(seq -w 1 36); do
+            cp "$i.webp" "mobile/www/figurinhas/$i.webp"
+          done
+
+          git clone --depth 1 https://github.com/cincoregioes-star/album-dupla-exclusao-premium.git /tmp/dupla-premium
+          cp -R /tmp/dupla-premium/game mobile/www/game
+
+      - name: Criar configuracao Capacitor
+        shell: bash
+        run: |
+          cat > mobile/package.json <<'JSON'
+          {
+            "name": "dupla-exclusao-educacional",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": {
+              "@capacitor/core": "7.4.3"
+            },
+            "devDependencies": {
+              "@capacitor/cli": "7.4.3",
+              "@capacitor/android": "7.4.3"
+            }
+          }
+          JSON
+
+          cat > mobile/capacitor.config.json <<'JSON'
+          {
+            "appId": "br.com.pedrodequeiroz.duplaexclusao",
+            "appName": "Dupla Exclusão",
+            "webDir": "www",
+            "bundledWebRuntime": false,
+            "server": {
+              "androidScheme": "https"
+            }
+          }
+          JSON
+
+      - name: Instalar Capacitor
+        working-directory: mobile
+        run: npm install
+
+      - name: Criar projeto Android
+        working-directory: mobile
+        run: npx cap add android
+
+      - name: Sincronizar arquivos web
+        working-directory: mobile
+        run: npx cap sync android
+
+      - name: Instalar SDK Android 35
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Gerar APK de teste
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Preparar APK
+        shell: bash
+        run: |
+          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk Dupla-Exclusao-Educacional.apk
+          ls -lh Dupla-Exclusao-Educacional.apk
+
+      - name: Publicar APK para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dupla-Exclusao-Educacional-APK
+          path: Dupla-Exclusao-Educacional.apk
+          retention-days: 30
