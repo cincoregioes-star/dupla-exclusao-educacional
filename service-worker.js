@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v7";
-const FULL = "dupla-exclusao-full-v7";
+const CORE = "dupla-exclusao-core-v8";
+const FULL = "dupla-exclusao-full-v8";
 
 const core = [
   "./",
