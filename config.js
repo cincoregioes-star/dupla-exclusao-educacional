@@ -225,7 +225,7 @@ window.APP_CONFIG = {
     const list = document.querySelector("#simList");
     if(!list) return;
     const observer = new MutationObserver(() => applySimLocks());
-    observer.observe(list, {childList:true,subtree:true});
+    observer.observe(list, {childList:true,subtree:false});
     setTimeout(applySimLocks, 0);
   }
 
