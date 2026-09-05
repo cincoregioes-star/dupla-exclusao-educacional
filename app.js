@@ -30,6 +30,8 @@
       pasted:{},
       attempts:[],
       syncPending:[],
+      simRewards:{},
+      evaluationCompleted:{},
       createdAt:new Date().toISOString()
     };
   }
@@ -37,11 +39,11 @@
     try{
       const s=JSON.parse(localStorage.getItem(STORAGE)||"null");
       if(!s) return freshState();
-      s.profile ||= {name:"",classGroup:"",studentCode:""}; s.inventory ||= {}; s.pasted ||= {}; s.attempts ||= []; s.syncPending ||= []; s.packs ??= 2;
+      s.profile ||= {name:"",classGroup:"",studentCode:""}; s.inventory ||= {}; s.pasted ||= {}; s.attempts ||= []; s.syncPending ||= []; s.simRewards ||= {}; s.evaluationCompleted ||= {}; s.packs ??= 2;
       return s;
     }catch(e){return freshState()}
   }
-  let state=loadState(), currentPage=1, activeQuiz=null, quizStart=0, teacherData=[];
+  let state=loadState(), currentPage=1, activeQuiz=null, quizStart=0, teacherData=[], studentAssignments=[];
   function save(){localStorage.setItem(STORAGE,JSON.stringify(state));}
   function $(s){return document.querySelector(s)}
   function $$(s){return [...document.querySelectorAll(s)]}
@@ -54,7 +56,7 @@
     const el=$("#screen-"+name); if(el) el.classList.add("active");
     $("#nav").classList.remove("open"); window.scrollTo({top:0,behavior:"smooth"});
     if(name==="album") renderAlbum();
-    if(name==="simulados") renderSimList();
+    if(name==="simulados"){ renderSimList(); loadStudentAssignments(); }
     if(name==="progresso") renderStudentProgress();
     if(name==="professor") renderTeacherPanel();
     if(name==="perfil") fillProfile();
@@ -104,7 +106,7 @@
   $("#openPackBtn").addEventListener("click",openPack);
   function openPack(){
     if(!ensureProfile()) return;
-    if(state.packs<=0){toast("Sem pacotes. Faça um simulado para conquistar mais.");return}
+    if(state.packs<=0){toast("Sem pacotes iniciais. As próximas figurinhas são conquistadas diretamente nos simulados.");return}
     state.packs--;
     const drawn=[];
     for(let i=0;i<5;i++){const s=STICKERS[Math.floor(Math.random()*STICKERS.length)];state.inventory[s.numero]=(state.inventory[s.numero]||0)+1;drawn.push(s)}
@@ -113,24 +115,41 @@
   }
 
   function bestForSim(id){const a=state.attempts.filter(x=>x.simuladoId===id);return a.length?Math.max(...a.map(x=>x.score)):null}
+  function stickerRewardForScore(score){ return Math.max(0,Math.min(5,Math.floor(Number(score||0)/2))); }
+  function grantStickerReward(count){
+    if(count<=0) return [];
+    const preferred=shuffle(STICKERS.filter(s=>!state.pasted[s.numero] && inventoryCount(s.numero)===0));
+    const chosen=[];
+    while(chosen.length<count && preferred.length) chosen.push(preferred.shift());
+    while(chosen.length<count && STICKERS.length) chosen.push(STICKERS[Math.floor(Math.random()*STICKERS.length)]);
+    chosen.forEach(s=>{state.inventory[s.numero]=(state.inventory[s.numero]||0)+1;});
+    return chosen;
+  }
+  function rewardNote(id){
+    const reward=state.simRewards?.[id];
+    if(reward) return `Premiação encerrada: ${Number(reward.count||0)} figurinha(s) recebida(s) na primeira conclusão. Você pode refazer para estudar, mas este simulado não premia novamente.`;
+    return "Premiação única na primeira conclusão: 2–3 acertos = 1 figurinha; 4–5 = 2; 6–7 = 3; 8–9 = 4; 10 = 5.";
+  }
   function renderSimList(){
     $("#simList").innerHTML=SIMS.map(s=>{
       const best=bestForSim(s.id);
-      return `<article class="sim-card"><div><span class="eyebrow">SIMULADO ${s.id}</span><h3>${esc(s.title)}</h3><p>${esc(s.desc)}</p>${best!==null?`<div class="score">Melhor resultado: ${best}/10</div>`:""}</div><div><button class="primary start-sim" data-id="${s.id}">Iniciar</button></div></article>`;
+      return `<article class="sim-card"><div><span class="eyebrow">SIMULADO ${s.id}</span><h3>${esc(s.title)}</h3><p>${esc(s.desc)}</p>${best!==null?`<div class="score">Melhor resultado: ${best}/10</div>`:""}<div class="sim-enh-note">${esc(rewardNote(s.id))}</div></div><div><button class="primary start-sim" data-id="${s.id}">Iniciar / refazer</button></div></article>`;
     }).join("");
-    $$(".start-sim").forEach(b=>b.addEventListener("click",()=>startQuiz(Number(b.dataset.id))));
+    $$(".start-sim").forEach(b=>b.addEventListener("click",()=>startQuiz(Number(b.dataset.id),"practice",null)));
+    renderRequestedEvaluations();
   }
-  function startQuiz(id){
+  function startQuiz(id,mode="practice",assignment=null){
     if(!ensureProfile())return;
     const sim=SIMS.find(s=>s.id===id); if(!sim)return;
     const pool=BANK.filter(q=>q.module===sim.module);
+    if(pool.length<10){toast("Banco de questões insuficiente para este simulado.");return}
     const qs=sample(pool,10).map(q=>{
       const opts=shuffle([q.correct,...q.wrongs]);
       return {...q,options:opts,correctIndex:opts.indexOf(q.correct)};
     });
-    activeQuiz={sim,questions:qs};quizStart=Date.now();
-    $("#quizTag").textContent=`SIMULADO ${sim.id} • 10 QUESTÕES`;
-    $("#quizTitle").textContent=sim.title;$("#quizProgress").textContent="0/10 respondidas";
+    activeQuiz={sim,questions:qs,mode,assignment};quizStart=Date.now();
+    $("#quizTag").textContent=mode==="evaluation"?`AVALIAÇÃO SOLICITADA • SIMULADO ${sim.id} • 10 QUESTÕES`:`SIMULADO ${sim.id} • 10 QUESTÕES`;
+    $("#quizTitle").textContent=mode==="evaluation"?`${sim.title} — avaliação institucional`:sim.title;$("#quizProgress").textContent="0/10 respondidas";
     $("#quizQuestions").innerHTML=qs.map((q,i)=>`<article class="question-card"><h3>${i+1}. ${esc(q.question)}</h3>${q.options.map((o,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}"><span><b>${String.fromCharCode(65+j)}.</b> ${esc(o)}</span></label>`).join("")}<span class="skill-label">${esc(q.skill.replaceAll("_"," "))}</span></article>`).join("");
     $$('#quizForm input[type="radio"]').forEach(r=>r.addEventListener("change",()=>{
       const answered=new Set($$('#quizForm input[type="radio"]:checked').map(x=>x.name)).size;$("#quizProgress").textContent=`${answered}/10 respondidas`;
@@ -152,11 +171,35 @@
       deviceId:state.deviceId,studentCode:state.profile.studentCode,studentName:state.profile.name,classGroup:state.profile.classGroup,
       simuladoId:activeQuiz.sim.id,title:activeQuiz.sim.title,score,total:10,durationSeconds:duration,responses:answers,completedAt:new Date().toISOString()
     };
+    if(activeQuiz.mode==="evaluation"){
+      const assignment=activeQuiz.assignment;
+      try{
+        await submitInstitutionalEvaluation(attempt,assignment);
+        state.evaluationCompleted[assignment.assignment_id]=attempt.completedAt;save();
+        window.DuplaAssignments?.invalidate?.();
+        openModal(`<h2>Avaliação enviada com sucesso</h2><p>Suas respostas foram registradas.</p><p><b>O resultado desta avaliação é reservado ao professor que a solicitou, ao Gestor Escolar e ao Administrador do Sistema.</b></p><p>A nota, o gabarito e a correção não são exibidos ao estudante nesta aplicação institucional.</p><div class="form-actions"><button class="primary" onclick="document.getElementById('modalClose').click();document.querySelector('[data-screen=simulados]').click()">Voltar aos simulados</button></div>`);
+      }catch(err){
+        console.warn("evaluation submission",err);
+        toast("Não foi possível enviar a avaliação. Verifique a internet e tente novamente.");
+        return;
+      }
+      activeQuiz=null; await loadStudentAssignments(); return;
+    }
     state.attempts.push(attempt);state.syncPending.push(attempt.id);
-    state.packs += score===10?3:score>=8?2:1; save();
+    let awardedNow=false, rewardCount=0, rewardStickers=[];
+    if(!state.simRewards[activeQuiz.sim.id]){
+      rewardCount=stickerRewardForScore(score);
+      rewardStickers=grantStickerReward(rewardCount);
+      state.simRewards[activeQuiz.sim.id]={score,count:rewardCount,stickerNumbers:rewardStickers.map(s=>s.numero),awardedAt:new Date().toISOString()};
+      awardedNow=true;
+    }
+    save();
     await syncPending(false);
     const diff = activeQuiz.sim.id===10 ? evolutionText() : "";
-    openModal(`<h2>Resultado: ${score}/10</h2><p class="${score>=7?'result-good':'result-bad'}">${score>=8?"Ótimo desempenho.":score>=6?"Bom começo; revise as questões erradas.":"Há pontos importantes para revisar."}</p>${diff?`<p><b>${esc(diff)}</b></p>`:""}<p>Recompensa: <b>${score===10?3:score>=8?2:1} pacote(s)</b>.</p><div>${answers.map((a,i)=>`<div class="answer-review"><b>${i+1}. ${a.ok?"✓ Correta":"✗ Revisar"}</b><br><span>Sua resposta: ${esc(a.selected)}</span>${a.ok?"":`<br><span>Correta: ${esc(a.correct)}</span><br><small>${esc(a.explanation)}</small>`}</div>`).join("")}</div><div class="form-actions"><button class="primary" onclick="document.getElementById('modalClose').click();document.querySelector('[data-screen=progresso]').click()">Ver progresso</button></div>`);
+    const rewardHtml=awardedNow
+      ? `<p>Premiação única deste simulado: <b>${rewardCount} figurinha(s)</b>. ${rewardCount?`Recebidas: ${rewardStickers.map(s=>String(s.numero).padStart(2,"0")).join(", ")}.`:"A pontuação não atingiu a primeira faixa de premiação."} Este simulado não concederá novas figurinhas em outras tentativas.</p>`
+      : `<p><b>Sem nova premiação:</b> a recompensa deste simulado já foi definida na primeira conclusão.</p>`;
+    openModal(`<h2>Resultado: ${score}/10</h2><p class="${score>=7?'result-good':'result-bad'}">${score>=8?"Ótimo desempenho.":score>=6?"Bom começo; revise as questões erradas.":"Há pontos importantes para revisar."}</p>${diff?`<p><b>${esc(diff)}</b></p>`:""}${rewardHtml}<div>${answers.map((a,i)=>`<div class="answer-review"><b>${i+1}. ${a.ok?"✓ Correta":"✗ Revisar"}</b><br><span>Sua resposta: ${esc(a.selected)}</span>${a.ok?"":`<br><span>Correta: ${esc(a.correct)}</span><br><small>${esc(a.explanation)}</small>`}</div>`).join("")}</div><div class="form-actions"><button class="primary" onclick="document.getElementById('modalClose').click();document.querySelector('[data-screen=progresso]').click()">Ver progresso</button></div>`);
     activeQuiz=null;renderSimList();
   });
   function evolutionText(){
@@ -189,6 +232,56 @@
     if(!r.ok){const txt=await r.text();throw new Error(txt||`HTTP ${r.status}`)}
     const txt=await r.text();return txt?JSON.parse(txt):null;
   }
+  async function submitInstitutionalEvaluation(attempt,assignment){
+    if(!assignment?.assignment_id) throw new Error("Solicitação de avaliação inválida.");
+    if(!navigator.onLine) throw new Error("A avaliação solicitada precisa de conexão para ser enviada.");
+    await apiFetch("/rest/v1/evaluation_submissions",{
+      method:"POST",
+      headers:{"Prefer":"return=minimal"},
+      body:JSON.stringify({
+        assignment_id:assignment.assignment_id,
+        device_id:attempt.deviceId,
+        student_code:attempt.studentCode,
+        student_name:attempt.studentName,
+        class_group:attempt.classGroup,
+        school_code:(CFG.supabase||{}).schoolCode||"PQF",
+        simulado_id:attempt.simuladoId,
+        score:attempt.score,
+        total:attempt.total,
+        duration_seconds:attempt.durationSeconds,
+        responses:attempt.responses,
+        completed_at:attempt.completedAt
+      })
+    });
+  }
+  function renderRequestedEvaluations(){
+    const box=$("#requestedEvaluations");
+    if(!box) return;
+    if(!profileReady()){
+      box.innerHTML='<div class="panel"><h3>Avaliações solicitadas</h3><p class="status-note">Identifique o aluno para consultar avaliações liberadas por professor ou gestão.</p></div>';
+      return;
+    }
+    const evaluations=(studentAssignments||[]).filter(a=>a.activity_type==="simulado_avaliacao");
+    if(!navigator.onLine){
+      box.innerHTML='<div class="panel"><h3>Avaliações solicitadas</h3><p class="status-note">Conecte este aparelho à internet para consultar avaliações institucionais solicitadas.</p></div>';
+      return;
+    }
+    box.innerHTML=`<div class="panel"><h3>Avaliações solicitadas</h3>${evaluations.length?evaluations.map(a=>`<div class="attempt-row"><span><b>Simulado ${a.simulado_id}</b> — solicitado por ${esc(a.requester_name||"professor/gestão")}</span><button class="primary small start-evaluation" data-assignment="${esc(a.assignment_id)}" data-sim="${Number(a.simulado_id)}">Responder avaliação</button></div>`).join(""):'<p class="status-note">Nenhuma avaliação institucional pendente para este aluno/turma.</p>'}</div>`;
+    $$(".start-evaluation").forEach(btn=>btn.addEventListener("click",()=>{
+      const assignment=studentAssignments.find(a=>a.assignment_id===btn.dataset.assignment);
+      if(assignment) startQuiz(Number(btn.dataset.sim),"evaluation",assignment);
+    }));
+  }
+  async function loadStudentAssignments(){
+    if(!profileReady()){studentAssignments=[];renderRequestedEvaluations();return [];}
+    if(!navigator.onLine){studentAssignments=[];renderRequestedEvaluations();return [];}
+    try{
+      studentAssignments=await (window.DuplaAssignments?.fetchForStudent?.({force:true})||Promise.resolve([]));
+    }catch(e){console.warn("assignments",e);studentAssignments=[];}
+    renderRequestedEvaluations();
+    return studentAssignments;
+  }
+
   async function syncPending(show=true){
     if(!navigator.onLine){if(show)toast("Sem internet. Dados continuam salvos no aparelho.");return}
     const s=CFG.supabase||{};if(!s.enabled){if(show)toast("Sincronização remota ainda não configurada.");return}
@@ -260,7 +353,7 @@
 
   function updateNetwork(){
     $("#networkBadge").textContent=navigator.onLine?"● Online":"● Offline";
-    if(navigator.onLine) syncPending(false);
+    if(navigator.onLine){ syncPending(false); if(profileReady()) loadStudentAssignments(); }
   }
   window.addEventListener("online",updateNetwork);window.addEventListener("offline",updateNetwork);updateNetwork();
 
@@ -275,5 +368,5 @@
     navigator.serviceWorker.addEventListener("message",e=>{if(e.data?.type==="OFFLINE_READY"){$("#offlineStatus").textContent="Conteúdo completo preparado para uso offline neste aparelho.";toast("Conteúdo offline pronto.");}});
   }
 
-  renderSimList();renderAlbum();renderStudentProgress();renderTeacherPanel();
+  renderSimList();renderAlbum();renderStudentProgress();renderTeacherPanel();if(profileReady())loadStudentAssignments();
 })();

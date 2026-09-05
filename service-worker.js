@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v11";
-const FULL = "dupla-exclusao-full-v11";
+const CORE = "dupla-exclusao-core-v12";
+const FULL = "dupla-exclusao-full-v12";
 
 const core = [
   "./",
@@ -9,6 +9,7 @@ const core = [
   "config.js",
   "auth-institucional.js",
   "dashboard-institucional.js",
+  "institutional-controls.js",
   "question-bank.js",
   "manifest.webmanifest",
   "logo-pedro-queiroz.jpg",

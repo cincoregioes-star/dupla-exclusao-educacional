@@ -84,9 +84,9 @@
         <article class="inst-card"><h4>Plano automático de intervenção</h4><p class="hint">Sugestões calculadas a partir das dificuldades do recorte selecionado.</p><div id="instPlan" class="inst-list"></div></article>
         <article class="inst-card"><h4>Relatório pedagógico automático</h4><div class="inst-tools"><button id="instReportBtn" class="secondary" type="button">Gerar relatório</button><button id="instCopyBtn" class="secondary" type="button">Copiar relatório</button></div><div id="instReport" class="inst-report">Clique em “Gerar relatório”.</div></article>
       </div>
-      <div class="inst-section-title"><span class="eyebrow">PESQUISAS</span><h3>Pesquisas institucionais</h3><p class="hint">Análise da convivência escolar e da didática do álbum.</p></div>
+      <div class="inst-section-title"><span class="eyebrow">PESQUISAS</span><h3>Pesquisas institucionais</h3><p class="hint">Pesquisa Inicial e Pesquisa Final com os mesmos indicadores para comparação antes × depois.</p></div>
       <div class="survey-dashboard-controls">
-        <label>Pesquisa<select id="instSurvey"><option value="convivencia">Racismo e convivência</option><option value="didatica">Didática do álbum</option></select></label>
+        <label>Pesquisa<select id="instSurvey"><option value="convivencia">Pesquisa Inicial</option><option value="didatica">Pesquisa Final</option></select></label>
         <label>Pergunta<select id="instSurveyQuestion"></select></label>
         <button id="instSurveyCsv" class="secondary" type="button">Exportar pesquisas CSV</button>
       </div>
@@ -97,7 +97,8 @@
       <div class="inst-grid">
         <article class="inst-card"><h4>Participação nas pesquisas</h4><div id="instSurveyParticipation" class="inst-list"></div></article>
         <article class="inst-card"><h4>Complementos escritos</h4><p class="hint">Respostas abertas relacionadas à pergunta selecionada.</p><div id="instSurveyTexts"></div></article>
-      </div>`;
+      </div>
+      <article class="inst-card" style="margin-bottom:14px"><h4>Mudança de percepção — Inicial × Final</h4><p class="hint">Compara somente estudantes que responderam as duas pesquisas. Valores positivos indicam avanço nas afirmações de respeito, reconhecimento de direitos e responsabilidade coletiva.</p><div id="instPerceptionChange"></div></article>`;
     const anchor=$("#teacherCards"); if(anchor) screen.insertBefore(root, anchor); else screen.appendChild(root);
 
     ["#instClass","#instStudent","#instSim"].forEach(id=>$(id)?.addEventListener("change",()=>{syncStudentFilter();render();}));
@@ -263,16 +264,43 @@
     $("#instSurveyBars").innerHTML=entries.length?entries.map(([label,n])=>`<div class="ih-row"><span>${esc(label)}</span><div class="ih-track"><div class="ih-fill good" style="width:${n/answers.length*100}%"></div></div><b>${pct(n/answers.length*100)}</b></div>`).join(''):'<p class="status-note">Sem respostas.</p>';
 
     const all=filteredSurveys(),conv=new Set(all.filter(s=>s.surveyId==='convivencia').map(s=>s.studentCode||s.deviceId)).size,did=new Set(all.filter(s=>s.surveyId==='didatica').map(s=>s.studentCode||s.deviceId)).size;
-    $("#instSurveyParticipation").innerHTML=`<div class="inst-item"><div><b>Racismo e convivência</b><br><small>Pesquisa diagnóstica/perceptiva</small></div><span class="inst-badge good">${conv} aluno(s)</span></div><div class="inst-item"><div><b>Didática do álbum</b><br><small>Pesquisa final da experiência</small></div><span class="inst-badge ${did?'good':'warn'}">${did} aluno(s)</span></div>`;
+    $("#instSurveyParticipation").innerHTML=`<div class="inst-item"><div><b>Pesquisa Inicial</b><br><small>Linha de base das percepções</small></div><span class="inst-badge good">${conv} aluno(s)</span></div><div class="inst-item"><div><b>Pesquisa Final</b><br><small>Comparação após o percurso pedagógico</small></div><span class="inst-badge ${did?'good':'warn'}">${did} aluno(s)</span></div>`;
     const texts=answers.filter(x=>String(x.response.text||'').trim());
     $("#instSurveyTexts").innerHTML=texts.length?texts.slice(0,20).map((x,i)=>`<div class="survey-text-row"><small>${hideNames?`Aluno ${String(i+1).padStart(2,'0')}`:esc(x.submission.studentName||'Aluno')} • ${esc(x.submission.classGroup||'')}</small><p>${esc(x.response.text)}</p></div>`).join(''):'<p class="status-note">Nenhum complemento escrito nesta pergunta.</p>';
+    renderPerceptionChange();
+  }
+
+  function perceptionValue(choice){
+    return ({"Concordo totalmente":4,"Concordo":3,"Tenho dúvidas":2,"Discordo":1})[choice] || null;
+  }
+  function renderPerceptionChange(){
+    const el=$("#instPerceptionChange"); if(!el)return;
+    const all=filteredSurveys(),initial=all.filter(s=>s.surveyId==="convivencia"),finals=all.filter(s=>s.surveyId==="didatica");
+    const imap=new Map(initial.map(s=>[s.studentCode||s.deviceId,s]));
+    const fmap=new Map(finals.map(s=>[s.studentCode||s.deviceId,s]));
+    const matched=[...imap.keys()].filter(k=>fmap.has(k));
+    if(!matched.length){el.innerHTML='<p class="status-note">A comparação aparecerá quando houver estudantes com Pesquisa Inicial e Pesquisa Final respondidas.</p>';return;}
+    const rows=[];
+    for(let q=0;q<10;q++){
+      const pairs=matched.map(k=>{
+        const a=perceptionValue(imap.get(k)?.responses?.[q]?.choice),b=perceptionValue(fmap.get(k)?.responses?.[q]?.choice);
+        return a&&b?[a,b]:null;
+      }).filter(Boolean);
+      if(!pairs.length)continue;
+      const ai=pairs.reduce((s,x)=>s+x[0],0)/pairs.length,af=pairs.reduce((s,x)=>s+x[1],0)/pairs.length;
+      const pi=(ai-1)/3*100,pf=(af-1)/3*100,delta=pf-pi;
+      const question=imap.get(matched[0])?.responses?.[q]?.question || `Pergunta ${q+1}`;
+      rows.push(`<div class="inst-item"><div><b>${q+1}. ${esc(question)}</b><br><small>${pairs.length} estudante(s) pareado(s) • Inicial ${pct(pi)} → Final ${pct(pf)}</small></div><span class="inst-badge ${delta>2?'good':delta<-2?'bad':'warn'}">${delta>=0?'+':''}${Math.round(delta)} p.p.</span></div>`);
+    }
+    const overall=rows.length?matched.length:0;
+    el.innerHTML=`<p class="status-note">${overall} estudante(s) com respostas pareadas.</p><div class="inst-list">${rows.join("")}</div>`;
   }
 
   function generateReport(){
     const data=filteredAttempts(),surveys=filteredSurveys(),students=studentGroups(data),avg=average(data),hard=[...skillStats(data)].sort((a,b)=>a.pct-b.pct).slice(0,3),strong=[...skillStats(data)].sort((a,b)=>b.pct-a.pct).slice(0,3);
     const classLabel=$("#instClass")?.value||"todas as turmas",studentLabel=$("#instStudent")?.selectedOptions?.[0]?.textContent||"todos os alunos",simLabel=$("#instSim")?.selectedOptions?.[0]?.textContent||"todos os simulados";
     const low=students.filter(s=>average(s.attempts)<50).length,attention=students.filter(s=>{const a=average(s.attempts);return a>=50&&a<70}).length;
-    $("#instReport").textContent=`RELATÓRIO PEDAGÓGICO — DUPLA EXCLUSÃO\nDASHBOARD INSTITUCIONAL PARA TOMADA DE DECISÃO\n\nRecorte: ${classLabel} | ${studentLabel} | ${simLabel}\nResultados analisados: ${data.length}\nEstudantes: ${students.length}\nMédia geral: ${pct(avg)}\nAbaixo de 50%: ${low}\nFaixa de atenção (50% a 69%): ${attention}\nPesquisas registradas: ${surveys.length}\n\nHabilidades prioritárias:\n${hard.length?hard.map((s,i)=>`${i+1}. ${s.skill.replaceAll('_',' ')} — ${pct(s.pct)}`).join('\n'):'Sem dados suficientes.'}\n\nPontos fortes:\n${strong.length?strong.map((s,i)=>`${i+1}. ${s.skill.replaceAll('_',' ')} — ${pct(s.pct)}`).join('\n'):'Sem dados suficientes.'}\n\nEncaminhamento sugerido:\nPriorizar as habilidades com menor domínio, organizar retomada pedagógica com situações concretas de racismo, capacitismo, acessibilidade e convivência, acompanhar os estudantes sinalizados e comparar o diagnóstico inicial com a avaliação final. Usar as pesquisas para identificar percepções de convivência e avaliar a didática do álbum.\n\nPrivacidade: resultados individuais devem permanecer em ambiente restrito e ser utilizados exclusivamente para acompanhamento pedagógico.`;
+    $("#instReport").textContent=`RELATÓRIO PEDAGÓGICO — DUPLA EXCLUSÃO\nDASHBOARD INSTITUCIONAL PARA TOMADA DE DECISÃO\n\nRecorte: ${classLabel} | ${studentLabel} | ${simLabel}\nResultados analisados: ${data.length}\nEstudantes: ${students.length}\nMédia geral: ${pct(avg)}\nAbaixo de 50%: ${low}\nFaixa de atenção (50% a 69%): ${attention}\nPesquisas registradas: ${surveys.length}\n\nHabilidades prioritárias:\n${hard.length?hard.map((s,i)=>`${i+1}. ${s.skill.replaceAll('_',' ')} — ${pct(s.pct)}`).join('\n'):'Sem dados suficientes.'}\n\nPontos fortes:\n${strong.length?strong.map((s,i)=>`${i+1}. ${s.skill.replaceAll('_',' ')} — ${pct(s.pct)}`).join('\n'):'Sem dados suficientes.'}\n\nEncaminhamento sugerido:\nPriorizar as habilidades com menor domínio, organizar retomada pedagógica com situações concretas de racismo, capacitismo, acessibilidade e convivência, acompanhar os estudantes sinalizados e comparar o diagnóstico inicial com a avaliação final. Usar a Pesquisa Inicial e a Pesquisa Final para comparar mudanças de percepção antes × depois e orientar novas intervenções.\n\nPrivacidade: resultados individuais devem permanecer em ambiente restrito e ser utilizados exclusivamente para acompanhamento pedagógico.`;
   }
   async function copyReport(){const t=$("#instReport")?.textContent||"";if(!t||t.startsWith("Clique"))return;try{await navigator.clipboard.writeText(t);alert("Relatório copiado.");}catch{alert("Não foi possível copiar automaticamente.");}}
 

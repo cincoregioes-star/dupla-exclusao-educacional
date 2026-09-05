@@ -11,49 +11,64 @@ window.APP_CONFIG = {
   }
 };
 
+window.DuplaAssignments = (() => {
+  "use strict";
+  let cacheKey = "", cacheItems = [], cacheAt = 0;
+  const state = () => { try { return JSON.parse(localStorage.getItem("dupla_exclusao_state_v2") || "null") || {}; } catch { return {}; } };
+  const profile = () => state().profile || {};
+  async function fetchForStudent({force=false} = {}){
+    const p = profile(), s = window.APP_CONFIG?.supabase || {};
+    if(!navigator.onLine || !s.enabled || !s.url || !s.anonKey || !String(p.studentCode||"").trim() || !String(p.classGroup||"").trim()) return [];
+    const key = `${String(p.studentCode).trim()}|${String(p.classGroup).trim()}`;
+    if(!force && cacheKey === key && Date.now()-cacheAt < 15000) return cacheItems;
+    const response = await fetch(`${s.url.replace(/\/$/,"")}/functions/v1/dupla-exclusao-assignments`,{
+      method:"POST",
+      headers:{apikey:s.anonKey,"Content-Type":"application/json"},
+      body:JSON.stringify({student_code:String(p.studentCode).trim(),class_group:String(p.classGroup).trim()})
+    });
+    if(!response.ok) throw new Error(await response.text());
+    cacheItems = await response.json();
+    cacheKey = key; cacheAt = Date.now();
+    return cacheItems;
+  }
+  function invalidate(){ cacheKey=""; cacheItems=[]; cacheAt=0; }
+  return {fetchForStudent,invalidate,cached:()=>cacheItems};
+})();
+
 (() => {
   "use strict";
   const APP_STATE_KEY = "dupla_exclusao_state_v2";
   const SURVEY_KEY = "dupla_exclusao_surveys_v1";
 
+  const PERCEPTION_OPTIONS = ["Concordo totalmente", "Concordo", "Tenho dúvidas", "Discordo"];
+  const PERCEPTION_QUESTIONS = [
+    "Piadas ou apelidos relacionados à cor da pele podem ser formas de racismo.",
+    "Uma pessoa pode sofrer racismo mesmo sem haver insulto explícito.",
+    "Tratar um estudante com deficiência como incapaz é uma forma de capacitismo.",
+    "Estudantes com deficiência devem participar das mesmas atividades, com os recursos de acessibilidade de que necessitem.",
+    "Racismo e capacitismo podem atingir ao mesmo tempo um estudante negro com deficiência.",
+    "Excluir alguém de grupos ou atividades por preconceito é uma forma de discriminação.",
+    "Quando presencio preconceito, devo intervir de forma segura ou procurar um adulto responsável.",
+    "A escola deve conversar regularmente sobre racismo, capacitismo e respeito às diferenças.",
+    "Eu sei a quem pedir ajuda na escola se presenciar ou sofrer discriminação.",
+    "Eu também sou responsável por contribuir para uma convivência escolar respeitosa e inclusiva."
+  ];
   const SURVEYS = [
     {
       id: "convivencia",
-      title: "Pesquisa 1 — Racismo, preconceito e convivência escolar",
-      tab: "Racismo e convivência",
-      description: "Escuta dos estudantes sobre racismo, preconceito, exclusão e atitudes entre colegas no cotidiano escolar.",
-      finalOnly: false,
-      questions: [
-        ["Na sua escola, você já presenciou piadas ou apelidos relacionados à cor da pele?", ["Nunca", "Raramente", "Às vezes", "Frequentemente"]],
-        ["Você percebe que estudantes negros podem ser tratados de forma diferente por outros alunos?", ["Não percebo", "Percebo raramente", "Percebo às vezes", "Percebo com frequência"]],
-        ["Você já viu um estudante ser excluído de um grupo ou atividade por causa de preconceito?", ["Nunca", "Uma vez", "Algumas vezes", "Muitas vezes"]],
-        ["Quando acontece uma fala preconceituosa entre alunos, como os colegas costumam reagir?", ["Intervêm e defendem a pessoa", "Procuram um adulto", "Ficam em silêncio", "Riem ou incentivam"]],
-        ["Você se considera capaz de reconhecer uma situação de racismo na escola?", ["Sim, com segurança", "Na maioria das vezes", "Tenho dúvidas", "Ainda não"]],
-        ["Os professores e a escola conversam sobre racismo, preconceito e respeito às diferenças?", ["Com frequência", "Às vezes", "Raramente", "Nunca"]],
-        ["Como você avalia o respeito entre alunos de diferentes cores, origens e características?", ["Muito bom", "Bom", "Regular", "Precisa melhorar muito"]],
-        ["Se você sofresse ou presenciasse preconceito, saberia a quem pedir ajuda na escola?", ["Sim", "Acho que sim", "Tenho dúvidas", "Não"]],
-        ["Qual situação de preconceito você considera mais comum entre estudantes?", ["Piadas e apelidos", "Exclusão de grupos", "Comentários em redes sociais", "Tratamento desigual"]],
-        ["O que a escola deveria priorizar para reduzir preconceito e racismo?", ["Debates e oficinas", "Projetos educativos", "Acolhimento e canais de denúncia", "Maior acompanhamento da convivência"]]
-      ]
+      title: "Pesquisa Inicial — Percepções sobre Racismo, Deficiência e Convivência Escolar",
+      tab: "Pesquisa Inicial",
+      description: "Linha de base aplicada no início da experiência. Registra as percepções do estudante antes do percurso pedagógico.",
+      requiresRelease: false,
+      questions: PERCEPTION_QUESTIONS.map(q => [q, PERCEPTION_OPTIONS])
     },
     {
       id: "didatica",
-      title: "Pesquisa 2 — Didática do álbum e experiência de aprendizagem",
-      tab: "Didática do álbum",
-      description: "Pesquisa final sobre clareza, interesse, aprendizagem e utilidade do álbum, simulados e game.",
-      finalOnly: true,
-      questions: [
-        ["O álbum ajudou você a compreender o que significa dupla exclusão?", ["Ajudou muito", "Ajudou", "Ajudou pouco", "Não ajudou"]],
-        ["As figurinhas e imagens facilitaram a compreensão dos temas?", ["Facilitaram muito", "Facilitaram", "Facilitaram pouco", "Não facilitaram"]],
-        ["Os textos do álbum foram claros e adequados para sua idade?", ["Muito claros", "Claros", "Pouco claros", "Difíceis"]],
-        ["Os simulados ajudaram a revisar e fixar o conteúdo?", ["Ajudaram muito", "Ajudaram", "Ajudaram pouco", "Não ajudaram"]],
-        ["O game contribuiu para tornar a atividade mais interessante?", ["Contribuiu muito", "Contribuiu", "Contribuiu pouco", "Não contribuiu"]],
-        ["Foi fácil navegar pelas telas, páginas e funções do aplicativo?", ["Muito fácil", "Fácil", "Um pouco difícil", "Difícil"]],
-        ["A sequência álbum, simulados e atividades ajudou na aprendizagem?", ["Ajudou muito", "Ajudou", "Ajudou pouco", "Não ajudou"]],
-        ["A proposta aumentou sua vontade de participar e aprender sobre inclusão e respeito?", ["Aumentou muito", "Aumentou", "Aumentou pouco", "Não aumentou"]],
-        ["Você considera esse recurso adequado para ser usado com outras turmas?", ["Sim, totalmente", "Sim, com pequenos ajustes", "Talvez", "Não"]],
-        ["Você gostaria que a escola utilizasse outros conteúdos nesse mesmo formato digital?", ["Sim, muitos", "Sim, alguns", "Talvez", "Não"]]
-      ]
+      title: "Pesquisa Final — Mudanças de Percepção sobre Racismo, Deficiência e Convivência Escolar",
+      tab: "Pesquisa Final",
+      description: "Aplicada somente quando liberada por professor ou gestão. Repete os mesmos indicadores da pesquisa inicial para permitir comparação antes × depois.",
+      requiresRelease: true,
+      questions: PERCEPTION_QUESTIONS.map(q => [q, PERCEPTION_OPTIONS])
     }
   ];
 
@@ -73,6 +88,7 @@ window.APP_CONFIG = {
       school_code: s.schoolCode || "PQF",
       survey_id: submission.id,
       survey_title: submission.title,
+      assignment_id: submission.assignmentId || null,
       responses: submission.responses || [],
       completed_at: submission.completedAt
     };
@@ -163,9 +179,16 @@ window.APP_CONFIG = {
   }
 
   let activeSurvey = "convivencia";
-  function surveyUnlocked(survey){ return !survey.finalOnly || completed(10); }
+  async function releaseForSurvey(survey){
+    if(!survey?.requiresRelease) return {assignment_id:null};
+    if(!profileReady() || !navigator.onLine) return null;
+    try{
+      const assignments = await window.DuplaAssignments.fetchForStudent();
+      return assignments.find(a => a.activity_type === "pesquisa_final" && a.survey_id === "didatica") || null;
+    }catch(error){ console.warn("survey release",error); return null; }
+  }
 
-  function renderSurvey(){
+  async function renderSurvey(){
     const tabs = document.querySelector("#surveyTabs");
     const intro = document.querySelector("#surveyIntro");
     const questions = document.querySelector("#surveyQuestions");
@@ -177,28 +200,36 @@ window.APP_CONFIG = {
     const survey = SURVEYS.find(s => s.id === activeSurvey) || SURVEYS[0];
     const savedAll = readSurveyState();
     const saved = savedAll[survey.id];
-    const unlocked = surveyUnlocked(survey);
+    const release = await releaseForSurvey(survey);
+    const unlocked = !survey.requiresRelease || Boolean(release);
+    const editable = unlocked && !saved;
 
     tabs.innerHTML = SURVEYS.map(s => `<button type="button" data-survey="${s.id}" class="${s.id===survey.id?"active":""}">${esc(s.tab)}${savedAll[s.id]?" ✓":""}</button>`).join("");
     tabs.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => { activeSurvey = btn.dataset.survey; renderSurvey(); }));
 
-    intro.innerHTML = `<h3>${esc(survey.title)}</h3><p>${esc(survey.description)}</p>${saved?'<span class="survey-complete">Pesquisa já respondida — você pode revisar e salvar novamente.</span>':''}${!unlocked?'<div class="survey-locked">🔒 Pesquisa final bloqueada. Conclua o Simulado 10 para liberá-la.</div>':''}`;
+    intro.innerHTML = `<h3>${esc(survey.title)}</h3><p>${esc(survey.description)}</p>${saved?'<span class="survey-complete">Pesquisa respondida e encerrada neste aparelho.</span>':''}${!unlocked?'<div class="survey-locked">🔒 Pesquisa Final aguardando liberação de professor ou gestão para este aluno/turma.</div>':''}`;
 
     questions.innerHTML = survey.questions.map((item, i) => {
       const prior = saved?.responses?.[i] || {};
       const opts = [...item[1], "Nenhuma das opções acima"];
-      return `<article class="survey-question"><h3>${i+1}. ${esc(item[0])}</h3><div class="survey-options">${opts.map(o => `<label class="survey-option"><input type="radio" name="survey_q${i}" value="${esc(o)}" ${prior.choice===o?"checked":""} ${unlocked?"":"disabled"}><span>${esc(o)}</span></label>`).join("")}</div><div class="survey-text"><label for="survey_text${i}">Complemento / outra resposta (opcional)</label><textarea id="survey_text${i}" maxlength="500" placeholder="Escreva aqui se quiser explicar, complementar ou registrar outra resposta." ${unlocked?"":"disabled"}>${esc(prior.text || "")}</textarea></div></article>`;
+      return `<article class="survey-question"><h3>${i+1}. ${esc(item[0])}</h3><div class="survey-options">${opts.map(o => `<label class="survey-option"><input type="radio" name="survey_q${i}" value="${esc(o)}" ${prior.choice===o?"checked":""} ${editable?"":"disabled"}><span>${esc(o)}</span></label>`).join("")}</div><div class="survey-text"><label for="survey_text${i}">Complemento / outra resposta (opcional)</label><textarea id="survey_text${i}" maxlength="500" placeholder="Escreva aqui se quiser explicar, complementar ou registrar outra resposta." ${editable?"":"disabled"}>${esc(prior.text || "")}</textarea></div></article>`;
     }).join("");
 
     form.dataset.survey = survey.id;
-    saveBtn.disabled = !unlocked;
-    status.textContent = unlocked ? "Marque uma alternativa em cada pergunta. O campo de texto é opcional." : "Conclua a avaliação final para responder esta pesquisa.";
+    form.dataset.assignmentId = release?.assignment_id || saved?.assignmentId || "";
+    saveBtn.disabled = !editable;
+    saveBtn.textContent = saved ? "Pesquisa já respondida" : "Salvar pesquisa";
+    status.textContent = saved ? "Esta pesquisa já foi registrada. Para preservar a comparação antes × depois, ela não pode ser respondida novamente." : unlocked ? "Marque uma alternativa em cada pergunta. O campo de texto é opcional." : "A Pesquisa Final será liberada por professor ou gestão quando for o momento da comparação.";
   }
 
   async function saveSurvey(event){
     event.preventDefault();
     const survey = SURVEYS.find(s => s.id === document.querySelector("#surveyForm")?.dataset.survey);
-    if(!survey || !surveyUnlocked(survey)) return;
+    if(!survey) return;
+    const alreadySaved = readSurveyState()[survey.id];
+    if(alreadySaved){ alert("Esta pesquisa já foi respondida."); return; }
+    const assignmentId = document.querySelector("#surveyForm")?.dataset.assignmentId || "";
+    if(survey.requiresRelease && !assignmentId){ alert("A Pesquisa Final ainda não foi liberada para este aluno/turma."); return; }
     if(!profileReady()){
       alert("Identifique o aluno primeiro em ‘Começar / Identificar aluno’.");
       document.querySelector('[data-screen="perfil"]')?.click();
@@ -213,12 +244,13 @@ window.APP_CONFIG = {
     }
     const p = profile();
     const all = readSurveyState();
-    all[survey.id] = {id:survey.id,title:survey.title,studentName:p.name,studentCode:p.studentCode,classGroup:p.classGroup,responses,completedAt:new Date().toISOString()};
+    all[survey.id] = {id:survey.id,title:survey.title,assignmentId:assignmentId||null,studentName:p.name,studentCode:p.studentCode,classGroup:p.classGroup,responses,completedAt:new Date().toISOString()};
     saveSurveyState(all);
     const synced = await syncSurveySubmission(all[survey.id]);
     renderSurvey();
     const remoteMsg = synced ? " Resposta sincronizada com o painel institucional." : (navigator.onLine ? " A resposta ficou salva no aparelho e será sincronizada quando possível." : " A resposta ficou salva offline e será sincronizada quando houver internet.");
-    alert((survey.id === "convivencia" ? "Pesquisa salva. Ao final da experiência, responda também a pesquisa sobre a didática do álbum." : "Pesquisa final salva. Obrigado por avaliar a experiência de aprendizagem.") + remoteMsg);
+    if(survey.id === "didatica") window.DuplaAssignments?.invalidate?.();
+    alert((survey.id === "convivencia" ? "Pesquisa Inicial salva. A Pesquisa Final será liberada pelo professor ou pela gestão no momento adequado." : "Pesquisa Final salva. Obrigado. A comparação antes × depois ficará disponível somente no ambiente institucional.") + remoteMsg);
   }
 
   function exportSurveys(){
@@ -238,36 +270,16 @@ window.APP_CONFIG = {
     const list = document.querySelector("#simList");
     if(!list) return;
     const state = readAppState();
-    const attempts = state.attempts || [];
-    const has = id => attempts.some(a => Number(a.simuladoId) === Number(id));
+    const rewards = state.simRewards || {};
     list.querySelectorAll(".start-sim").forEach(btn => {
       const id = Number(btn.dataset.id);
       const card = btn.closest(".sim-card");
       card?.classList.remove("enh-locked","enh-complete");
-      card?.querySelector(".sim-enh-note")?.remove();
-      const note = document.createElement("div");
-      note.className = "sim-enh-note";
-      if(has(id)){
-        btn.disabled = true;
-        btn.textContent = "Concluído ✓";
-        btn.className = "secondary start-sim";
-        card?.classList.add("enh-complete");
-        note.textContent = "Simulado concluído. Recompensa já entregue; novas figurinhas não podem ser obtidas repetindo esta etapa.";
-      } else if(id > 1 && !has(id-1)){
-        btn.disabled = true;
-        btn.textContent = "Bloqueado";
-        btn.className = "secondary start-sim";
-        card?.classList.add("enh-locked");
-        note.textContent = `🔒 Conclua o Simulado ${id-1} para desbloquear.`;
-      } else {
-        btn.disabled = false;
-        btn.textContent = "Iniciar";
-        btn.className = "primary start-sim";
-        note.textContent = "Primeira conclusão libera a recompensa em pacotes de figurinhas.";
-      }
-      card?.querySelector("div")?.appendChild(note);
+      btn.disabled = false;
+      btn.textContent = "Iniciar / refazer";
+      btn.className = "primary start-sim";
+      if(rewards[id]) card?.classList.add("enh-complete");
     });
-    if(activeSurvey === "didatica") renderSurvey();
   }
 
   function observeSimulados(){
@@ -280,9 +292,10 @@ window.APP_CONFIG = {
 
   installStyles();
   installSurveyScreen();
-  window.addEventListener("online", () => syncPendingSurveys());
+  window.addEventListener("online", () => { window.DuplaAssignments?.invalidate?.(); syncPendingSurveys(); renderSurvey(); });
   if(navigator.onLine) setTimeout(syncPendingSurveys, 1000);
   document.querySelector("#surveyForm")?.addEventListener("submit", saveSurvey);
+  document.querySelectorAll('[data-screen="pesquisas"]').forEach(btn=>btn.addEventListener("click",()=>setTimeout(renderSurvey,0)));
   renderSurvey();
   observeSimulados();
 })();

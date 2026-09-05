@@ -93,7 +93,7 @@
       </div>
 
       <div class="feature-grid">
-        <article><span>🧩</span><h3>Álbum</h3><p>36 figurinhas, 6 páginas temáticas e pacotes conquistados por desempenho.</p></article>
+        <article><span>🧩</span><h3>Álbum</h3><p>36 figurinhas em 6 páginas temáticas. Cada simulado concede no máximo 5 figurinhas e premia somente uma vez.</p></article>
         <article><span>📝</span><h3>10 simulados</h3><p>10 questões por tentativa, sorteadas de um banco de 150 e alternativas embaralhadas.</p></article>
         <article><span>🎮</span><h3>Game</h3><p>Game original preservado e disponível também dentro do APK offline.</p></article>
         <article><span>📊</span><h3>Acompanhamento</h3><p>Resultados por aluno, simulado e habilidade, com exportação e sincronização opcional.</p></article>
@@ -117,7 +117,7 @@
       <div class="section-head">
         <div><span class="eyebrow">36 FIGURINHAS</span><h2>Álbum Dupla Exclusão</h2></div>
         <div class="stats-inline">
-          <span>Pacotes <b id="packsStat">0</b></span>
+          <span>Pacotes iniciais <b id="packsStat">0</b></span>
           <span>Coladas <b id="stickersStat">0</b>/36</span>
           <button id="openPackBtn" class="primary small">Abrir pacote</button>
         </div>
@@ -129,8 +129,9 @@
 
     <section id="screen-simulados" class="screen">
       <div class="section-head">
-        <div><span class="eyebrow">AVALIAÇÃO FORMATIVA</span><h2>10 simulados</h2><p>Cada tentativa seleciona 10 questões e embaralha automaticamente as alternativas.</p></div>
+        <div><span class="eyebrow">APRENDIZAGEM LIVRE + AVALIAÇÃO INSTITUCIONAL</span><h2>10 simulados</h2><p>Todos os simulados ficam liberados para estudo e podem ser refeitos. Em cada tentativa, 10 questões são sorteadas de um banco de 15 do tema e as alternativas são embaralhadas. A premiação em figurinhas ocorre uma única vez por simulado, na primeira conclusão.</p></div>
       </div>
+      <div id="requestedEvaluations"></div>
       <div id="simList" class="sim-grid"></div>
     </section>
 
@@ -155,7 +156,7 @@
         <div>
           <span class="eyebrow">ESCUTA DOS ESTUDANTES</span>
           <h2>Pesquisas</h2>
-          <p>Duas pesquisas com 10 perguntas cada. Em todas elas, o estudante pode marcar uma alternativa, escolher “Nenhuma das opções” e também escrever um complemento.</p>
+          <p>A Pesquisa Inicial fica disponível desde o início. A Pesquisa Final usa os mesmos 10 indicadores para comparar mudanças de percepção e só é liberada quando professor ou gestão solicitar para a turma ou para um aluno específico.</p>
         </div>
       </div>
       <div id="surveyTabs" class="survey-tabs"></div>
@@ -290,5 +291,6 @@ window.ALBUM_PAGES = [{"pagina": 1, "titulo": "Identidade do Projeto", "texto": 
 <script src="app.js"></script>
 <script src="auth-institucional.js"></script>
 <script src="dashboard-institucional.js"></script>
+<script src="institutional-controls.js"></script>
 </body>
 </html>
