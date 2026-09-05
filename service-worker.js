@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v10";
-const FULL = "dupla-exclusao-full-v10";
+const CORE = "dupla-exclusao-core-v11";
+const FULL = "dupla-exclusao-full-v11";
 
 const core = [
   "./",
@@ -12,16 +12,34 @@ const core = [
   "question-bank.js",
   "manifest.webmanifest",
   "logo-pedro-queiroz.jpg",
-  "icon-192.png",
-  "icon-512.png"
+  "icons/icon-192.png",
+  "icons/icon-512.png"
 ];
 
 const stickers = Array.from({ length: 36 }, (_, i) =>
-  `${String(i + 1).padStart(2, "0")}.webp`
+  `figurinhas/${String(i + 1).padStart(2, "0")}.webp`
 );
+
+const game = [
+  "game/index.html",
+  "game/style.css",
+  "game/script.js",
+  "game/figurinhas/figurinhas-config.js",
+  "game/audio/bomba.mp3",
+  "game/audio/click.mp3",
+  "game/audio/erro.mp3",
+  "game/audio/foguete.mp3",
+  "game/audio/fundo.mp3",
+  "game/audio/match.mp3",
+  "game/audio/pa.mp3",
+  "game/audio/sparkle.mp3",
+  "game/audio/swipe.mp3",
+  "game/audio/vitoria.mp3"
+];
 
 const optionalOffline = [
   ...stickers,
+  ...game,
   "qrcode_album_dupla_exclusao.png",
   "qrcode-album-dupla-exclusao.png"
 ];
@@ -37,9 +55,7 @@ async function addIndividually(cacheName, assets){
 }
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    addIndividually(CORE, core).then(() => self.skipWaiting())
-  );
+  event.waitUntil(addIndividually(CORE, core).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", event => {
@@ -52,34 +68,24 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
-
   const url = new URL(event.request.url);
   const isCode = url.origin === self.location.origin && (
-    event.request.mode === "navigate" ||
-    /\.(?:html|js|css|json|webmanifest)$/i.test(url.pathname)
+    event.request.mode === "navigate" || /\.(?:html|js|css|json|webmanifest)$/i.test(url.pathname)
   );
-
   if (isCode) {
     event.respondWith(
       fetch(event.request, { cache: "no-store" })
         .then(response => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CORE).then(cache => cache.put(event.request, copy)).catch(() => {});
-          }
+          if (response.ok) caches.open(CORE).then(cache => cache.put(event.request, response.clone())).catch(() => {});
           return response;
         })
         .catch(() => caches.match(event.request).then(hit => hit || caches.match("index.html")))
     );
     return;
   }
-
   event.respondWith(
     caches.match(event.request).then(hit => hit || fetch(event.request).then(response => {
-      if (response.ok && url.origin === self.location.origin) {
-        const copy = response.clone();
-        caches.open(FULL).then(cache => cache.put(event.request, copy)).catch(() => {});
-      }
+      if (response.ok && url.origin === self.location.origin) caches.open(FULL).then(cache => cache.put(event.request, response.clone())).catch(() => {});
       return response;
     }))
   );

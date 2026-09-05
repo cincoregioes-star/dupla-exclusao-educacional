@@ -55,3 +55,16 @@ O arquivo `supabase/SCHEMA.sql` contém a estrutura inicial do banco. Preencha `
 
 ## Privacidade
 O projeto foi desenhado para coletar apenas dados mínimos de acompanhamento. Em uso real com estudantes, especialmente menores de idade, a escola deve definir perfis de acesso, finalidade, retenção e proteção dos dados antes da implantação em produção.
+
+## Versão institucional v11
+
+A área **Professor** foi transformada em **ACESSO INSTITUCIONAL** e permanece bloqueada até autenticação válida no Supabase. Perfis previstos:
+
+- Administrador do Sistema — acesso técnico/institucional completo.
+- Gestor Escolar — visão geral da escola.
+- Coordenação Pedagógica — acompanhamento pedagógico e intervenções.
+- Professor — acesso somente às turmas vinculadas no banco.
+
+O dashboard inclui filtros por turma/aluno/simulado, barras verticais e horizontais, pizza/rosca, mapa de calor, evolução diagnóstico→final, níveis de acompanhamento, plano de intervenção, relatório automático, análise das pesquisas e exportações CSV.
+
+A sincronização dos simulados e das pesquisas ocorre quando houver internet. O conteúdo educativo e o progresso continuam disponíveis localmente no aparelho.

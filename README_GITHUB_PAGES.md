@@ -1,9 +1,7 @@
-# Dupla Exclusão — GitHub Pages v4
+# Dupla Exclusão — GitHub Pages v11
 
-Arquivos prontos para publicação no GitHub Pages a partir da raiz do repositório.
+Versão institucional pronta para publicação na raiz do repositório.
 
-## Publicação
-1. Envie todo o conteúdo desta pasta para a raiz do repositório.
-2. Em Settings > Pages, selecione Deploy from a branch.
-3. Branch: main; Folder: / (root).
-4. Salve e aguarde a publicação.
+Principais recursos: 36 figurinhas, 10 simulados/150 questões, pesquisas, game, PWA/offline, sincronização Supabase, acesso institucional por perfis e Dashboard Institucional para Tomada de Decisão.
+
+A estrutura de pastas `figurinhas/`, `icons/` e `game/` deve ser preservada.

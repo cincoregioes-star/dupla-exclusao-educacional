@@ -2,10 +2,12 @@ window.APP_CONFIG = {
   appName: "Dupla Exclusão",
   school: "E.M.E.F. Pedro de Queiroz Ferreira",
   supabase: {
-    enabled: false,
-    url: "",
-    anonKey: "",
-    attemptsTable: "student_attempts"
+    enabled: true,
+    url: "https://byajgsbilwiojdowqnlp.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5YWpnc2JpbHdpb2pkb3dxbmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MDk4OTksImV4cCI6MjA5NTA4NTg5OX0.8dPKeljYWpDGJNMJSAXV8J37Poz90oUz53xFhJ63sGY",
+    attemptsTable: "student_attempts",
+    surveysTable: "survey_responses",
+    schoolCode: "PQF"
   }
 };
 
@@ -59,6 +61,51 @@ window.APP_CONFIG = {
   const readAppState = () => { try { return JSON.parse(localStorage.getItem(APP_STATE_KEY) || "null") || {}; } catch { return {}; } };
   const readSurveyState = () => { try { return JSON.parse(localStorage.getItem(SURVEY_KEY) || "{}") || {}; } catch { return {}; } };
   const saveSurveyState = data => localStorage.setItem(SURVEY_KEY, JSON.stringify(data));
+
+  async function syncSurveySubmission(submission){
+    const s = window.APP_CONFIG?.supabase || {};
+    if(!navigator.onLine || !s.enabled || !s.url || !s.anonKey || !submission || submission.remoteSyncedAt) return false;
+    const payload = {
+      device_id: readAppState().deviceId || null,
+      student_code: submission.studentCode,
+      student_name: submission.studentName,
+      class_group: submission.classGroup,
+      school_code: s.schoolCode || "PQF",
+      survey_id: submission.id,
+      survey_title: submission.title,
+      responses: submission.responses || [],
+      completed_at: submission.completedAt
+    };
+    try {
+      const response = await fetch(`${s.url.replace(/\/$/, "")}/rest/v1/${encodeURIComponent(s.surveysTable || "survey_responses")}`, {
+        method: "POST",
+        headers: {
+          apikey: s.anonKey,
+          Authorization: `Bearer ${s.anonKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify(payload)
+      });
+      if(!response.ok && response.status !== 409) throw new Error(await response.text());
+      const all = readSurveyState();
+      if(all[submission.id]) {
+        all[submission.id].remoteSyncedAt = new Date().toISOString();
+        saveSurveyState(all);
+      }
+      return true;
+    } catch(error) {
+      console.warn("survey sync", error);
+      return false;
+    }
+  }
+
+  async function syncPendingSurveys(){
+    const all = readSurveyState();
+    for(const submission of Object.values(all)) {
+      if(submission && !submission.remoteSyncedAt) await syncSurveySubmission(submission);
+    }
+  }
   const completed = id => (readAppState().attempts || []).some(a => Number(a.simuladoId) === Number(id));
   const profile = () => readAppState().profile || {};
   const profileReady = () => {
@@ -148,7 +195,7 @@ window.APP_CONFIG = {
     status.textContent = unlocked ? "Marque uma alternativa em cada pergunta. O campo de texto é opcional." : "Conclua a avaliação final para responder esta pesquisa.";
   }
 
-  function saveSurvey(event){
+  async function saveSurvey(event){
     event.preventDefault();
     const survey = SURVEYS.find(s => s.id === document.querySelector("#surveyForm")?.dataset.survey);
     if(!survey || !surveyUnlocked(survey)) return;
@@ -168,8 +215,10 @@ window.APP_CONFIG = {
     const all = readSurveyState();
     all[survey.id] = {id:survey.id,title:survey.title,studentName:p.name,studentCode:p.studentCode,classGroup:p.classGroup,responses,completedAt:new Date().toISOString()};
     saveSurveyState(all);
+    const synced = await syncSurveySubmission(all[survey.id]);
     renderSurvey();
-    alert(survey.id === "convivencia" ? "Pesquisa salva. Ao final da experiência, responda também a pesquisa sobre a didática do álbum." : "Pesquisa final salva. Obrigado por avaliar a experiência de aprendizagem.");
+    const remoteMsg = synced ? " Resposta sincronizada com o painel institucional." : (navigator.onLine ? " A resposta ficou salva no aparelho e será sincronizada quando possível." : " A resposta ficou salva offline e será sincronizada quando houver internet.");
+    alert((survey.id === "convivencia" ? "Pesquisa salva. Ao final da experiência, responda também a pesquisa sobre a didática do álbum." : "Pesquisa final salva. Obrigado por avaliar a experiência de aprendizagem.") + remoteMsg);
   }
 
   function exportSurveys(){
@@ -231,6 +280,8 @@ window.APP_CONFIG = {
 
   installStyles();
   installSurveyScreen();
+  window.addEventListener("online", () => syncPendingSurveys());
+  if(navigator.onLine) setTimeout(syncPendingSurveys, 1000);
   document.querySelector("#surveyForm")?.addEventListener("submit", saveSurvey);
   renderSurvey();
   observeSimulados();

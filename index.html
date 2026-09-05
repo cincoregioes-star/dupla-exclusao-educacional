@@ -10,36 +10,285 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
   <style>
+    /* Identidade do título inspirada na versão premium */
     .premium-brand{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:260px;background:none;border:0;color:var(--text);padding:0;text-align:left}
-    .premium-brand .brand-icon{display:none}.premium-badge{display:inline-block;background:#facc15;color:#111827;font-size:.66rem;font-weight:900;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;line-height:1.2}.premium-brand-copy strong{display:block;margin-top:1px;color:#facc15;font-size:1.18rem;font-weight:900;line-height:1;text-transform:uppercase;letter-spacing:.01em}.premium-brand-copy small{display:block;margin-top:3px;max-width:430px;color:#f8fafc;font-size:.72rem;line-height:1.15;font-weight:500}.premium-brand-copy small b{font-weight:800}.premium-title-block{display:inline-block;max-width:980px;background:#020617;border:1px solid rgba(250,204,21,.38);border-left:4px solid #facc15;border-radius:0 18px 18px 0;padding:18px 22px 17px;box-shadow:0 14px 35px rgba(0,0,0,.32)}.premium-title-block h1{margin:6px 0 9px!important;color:#facc15!important;font-size:clamp(2.45rem,6vw,5.2rem)!important;font-weight:900!important;line-height:.9!important;text-transform:uppercase;letter-spacing:-.025em}.premium-title-block h2{margin:0!important;color:#fff!important;font-size:clamp(1.15rem,2.4vw,2rem)!important;line-height:1.08!important;font-weight:900}.premium-official-name{margin:5px 0 0!important;color:#e2e8f0!important;font-size:clamp(.95rem,1.5vw,1.2rem)!important;line-height:1.25!important;max-width:900px!important}.hero-description{margin-top:18px!important}
-    @media (max-width:760px){.premium-brand{min-width:0;max-width:calc(100vw - 90px)}.premium-brand-copy strong{font-size:1.02rem}.premium-brand-copy small{font-size:.66rem;max-width:270px}.premium-title-block{display:block;padding:15px 16px 14px;border-radius:0 14px 14px 0}.premium-title-block h1{font-size:clamp(2rem,11vw,3.2rem)!important}.premium-title-block h2{font-size:clamp(1.05rem,5.2vw,1.35rem)!important}.premium-official-name{font-size:.92rem!important}}
+    .premium-brand .brand-icon{display:none}
+    .premium-badge{display:inline-block;background:#facc15;color:#111827;font-size:.66rem;font-weight:900;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;line-height:1.2}
+    .premium-brand-copy strong{display:block;margin-top:1px;color:#facc15;font-size:1.18rem;font-weight:900;line-height:1;text-transform:uppercase;letter-spacing:.01em}
+    .premium-brand-copy small{display:block;margin-top:3px;max-width:430px;color:#f8fafc;font-size:.72rem;line-height:1.15;font-weight:500}
+    .premium-brand-copy small b{font-weight:800}
+    .premium-title-block{display:inline-block;max-width:980px;background:#020617;border:1px solid rgba(250,204,21,.38);border-left:4px solid #facc15;border-radius:0 18px 18px 0;padding:18px 22px 17px;box-shadow:0 14px 35px rgba(0,0,0,.32)}
+    .premium-title-block h1{margin:6px 0 9px!important;color:#facc15!important;font-size:clamp(2.45rem,6vw,5.2rem)!important;font-weight:900!important;line-height:.9!important;text-transform:uppercase;letter-spacing:-.025em}
+    .premium-title-block h2{margin:0!important;color:#fff!important;font-size:clamp(1.15rem,2.4vw,2rem)!important;line-height:1.08!important;font-weight:900}
+    .premium-official-name{margin:5px 0 0!important;color:#e2e8f0!important;font-size:clamp(.95rem,1.5vw,1.2rem)!important;line-height:1.25!important;max-width:900px!important}
+    .hero-description{margin-top:18px!important}
+    @media (max-width:760px){
+      .premium-brand{min-width:0;max-width:calc(100vw - 90px)}
+      .premium-brand-copy strong{font-size:1.02rem}
+      .premium-brand-copy small{font-size:.66rem;max-width:270px}
+      .premium-title-block{display:block;padding:15px 16px 14px;border-radius:0 14px 14px 0}
+      .premium-title-block h1{font-size:clamp(2rem,11vw,3.2rem)!important}
+      .premium-title-block h2{font-size:clamp(1.05rem,5.2vw,1.35rem)!important}
+      .premium-official-name{font-size:.92rem!important}
+    }
   </style>
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <button class="brand-button premium-brand" data-screen="home" aria-label="Ir para início"><span class="premium-badge">Edição Municipal</span><span class="premium-brand-copy"><strong>Dupla Exclusão</strong><small><b>Entre a cor e a condição:</b> A realidade dos estudantes negros com deficiência na escola</small></span></button>
+    <button class="brand-button premium-brand" data-screen="home" aria-label="Ir para início">
+      <span class="premium-badge">Edição Municipal</span>
+      <span class="premium-brand-copy">
+        <strong>Dupla Exclusão</strong>
+        <small><b>Entre a cor e a condição:</b> A realidade dos estudantes negros com deficiência na escola</small>
+      </span>
+    </button>
     <button id="menuBtn" class="menu-btn" aria-label="Abrir menu">☰</button>
-    <nav id="nav" class="nav"><button data-screen="home">Início</button><button data-screen="album">Álbum</button><button data-screen="simulados">10 Simulados</button><button data-screen="pesquisas">Pesquisas</button><button id="gameBtn">Game</button><button data-screen="progresso">Meu progresso</button><button data-screen="professor">Professor</button><button data-screen="sobre">Sobre</button></nav>
+    <nav id="nav" class="nav">
+      <button data-screen="home">Início</button>
+      <button data-screen="album">Álbum</button>
+      <button data-screen="simulados">10 Simulados</button>
+      <button data-screen="pesquisas">Pesquisas</button>
+      <button id="gameBtn">Game</button>
+      <button data-screen="progresso">Meu progresso</button>
+      <button data-screen="professor">Professor</button>
+      <button data-screen="sobre">Sobre</button>
+    </nav>
   </header>
+
   <main>
-    <section id="screen-home" class="screen active"><div class="hero"><div class="hero-copy"><div class="premium-title-block"><span class="premium-badge">Edição Municipal</span><h1>Dupla Exclusão</h1><h2>Entre a cor e a condição:</h2><p class="premium-official-name">A realidade dos estudantes negros com deficiência na escola</p></div><p class="hero-description">Uma experiência educativa com álbum de 36 figurinhas, banco de 150 questões, 10 simulados, game e acompanhamento pedagógico.</p><div class="hero-actions"><button class="primary" data-screen="perfil">Começar / Identificar aluno</button><button class="secondary" id="prepareOfflineBtn">Preparar uso offline</button></div><div id="offlineStatus" class="status-note">O aplicativo funciona offline. Use o botão acima uma vez com internet para guardar também as 36 figurinhas e o game neste aparelho.</div></div><div class="hero-panel"><img src="logo-pedro-queiroz.jpg" class="school-logo" alt="Brasão da E.M.E.F. Pedro de Queiroz Ferreira"><div class="project-badge">3º lugar • Categoria PcD • Etapa Municipal</div><div class="credit-card"><strong>Orientação pedagógica</strong><span>Prof. Cleilson Paiva</span></div><div class="credit-card"><strong>Projeto digital e desenvolvimento</strong><span>Prof. Carlos André Tavares de Lima</span></div><div class="credit-card"><strong>Alunos do projeto</strong><span>Antônio Anselmo e Gabrielly Rodrigues • 8º ano</span></div><div class="school-line">E.M.E.F. Pedro de Queiroz Ferreira</div></div></div><div class="feature-grid"><article><span>🧩</span><h3>Álbum</h3><p>36 figurinhas, 6 páginas temáticas e pacotes conquistados por desempenho.</p></article><article><span>📝</span><h3>10 simulados</h3><p>10 questões por tentativa, sorteadas de um banco de 150 e alternativas embaralhadas.</p></article><article><span>🎮</span><h3>Game</h3><p>Game original preservado e disponível também dentro do APK offline.</p></article><article><span>📊</span><h3>Acompanhamento</h3><p>Resultados por aluno, simulado e habilidade, com exportação e sincronização opcional.</p></article></div></section>
-    <section id="screen-perfil" class="screen"><div class="section-head"><div><span class="eyebrow">IDENTIFICAÇÃO</span><h2>Perfil do aluno</h2></div></div><form id="profileForm" class="form-card"><label>Nome do aluno <input id="studentName" maxlength="80" autocomplete="name" placeholder="Ex.: João da Silva"></label><label>Turma <input id="studentClass" maxlength="40" placeholder="Ex.: 8º A"></label><label>Código do aluno <input id="studentCode" maxlength="40" placeholder="Ex.: 8A-023"></label><p class="privacy-tip">Use apenas os dados necessários. Evite CPF, endereço, telefone ou informação de saúde.</p><div class="form-actions"><button type="submit" class="primary">Salvar perfil</button><button type="button" class="secondary" data-screen="home">Cancelar</button></div></form></section>
-    <section id="screen-album" class="screen"><div class="section-head"><div><span class="eyebrow">36 FIGURINHAS</span><h2>Álbum Dupla Exclusão</h2></div><div class="stats-inline"><span>Pacotes <b id="packsStat">0</b></span><span>Coladas <b id="stickersStat">0</b>/36</span><button id="openPackBtn" class="primary small">Abrir pacote</button></div></div><div class="album-tabs" id="albumTabs"></div><div id="albumIntro" class="album-intro"></div><div id="albumGrid" class="sticker-grid"></div></section>
-    <section id="screen-simulados" class="screen"><div class="section-head"><div><span class="eyebrow">AVALIAÇÃO FORMATIVA</span><h2>10 simulados</h2><p>Cada tentativa seleciona 10 questões e embaralha automaticamente as alternativas.</p></div></div><div id="simList" class="sim-grid"></div></section>
-    <section id="screen-quiz" class="screen"><div class="quiz-shell"><div class="quiz-top"><div><span id="quizTag" class="eyebrow"></span><h2 id="quizTitle"></h2></div><div id="quizProgress" class="quiz-progress"></div></div><form id="quizForm"><div id="quizQuestions"></div><div class="quiz-actions"><button type="button" class="secondary" data-screen="simulados">Sair sem concluir</button><button type="submit" class="primary">Finalizar simulado</button></div></form></div></section>
-    <section id="screen-pesquisas" class="screen"><div class="section-head"><div><span class="eyebrow">ESCUTA DOS ESTUDANTES</span><h2>Pesquisas</h2><p>Duas pesquisas com 10 perguntas cada. Em todas elas, o estudante pode marcar uma alternativa, escolher “Nenhuma das opções” e também escrever um complemento.</p></div></div><div id="surveyTabs" class="survey-tabs"></div><div id="surveyIntro" class="panel survey-intro"></div><form id="surveyForm" class="survey-form"><div id="surveyQuestions"></div><div id="surveyStatus" class="status-note"></div><div class="form-actions"><button id="surveySaveBtn" type="submit" class="primary">Salvar pesquisa</button></div></form></section>
-    <section id="screen-progresso" class="screen"><div class="section-head"><div><span class="eyebrow">MEU DESEMPENHO</span><h2>Progresso do aluno</h2></div><button id="syncBtn" class="secondary">Sincronizar agora</button></div><div id="progressSummary" class="dashboard-cards"></div><div class="panel"><h3>Evolução por simulado</h3><div id="studentAttempts"></div></div><div class="panel"><h3>Habilidades que precisam de atenção</h3><div id="studentSkills"></div></div></section>
-    <section id="screen-professor" class="screen"><div class="section-head"><div><span class="eyebrow">ACESSO RESTRITO • INTELIGÊNCIA PEDAGÓGICA</span><h2>DASHBOARD INSTITUCIONAL PARA TOMADA DE DECISÃO</h2><p>Análise pedagógica por escola, turma e aluno, com indicadores para acompanhamento, intervenção e avaliação da experiência.</p></div></div><div class="teacher-grid"><div class="panel"><h3>Login do professor</h3><form id="teacherLoginForm" class="compact-form"><label>E-mail <input id="teacherEmail" type="email" autocomplete="username"></label><label>Senha <input id="teacherPassword" type="password" autocomplete="current-password"></label><button class="primary" type="submit">Entrar</button><button class="secondary" type="button" id="teacherLogoutBtn">Sair</button></form><div id="teacherAuthStatus" class="status-note"></div></div><div class="panel"><h3>Ações</h3><div class="action-stack"><button id="loadTeacherDataBtn" class="primary">Atualizar dados</button><button id="exportTeacherCsvBtn" class="secondary">Exportar resultados CSV</button><button id="exportSurveyCsvBtn" class="secondary">Exportar pesquisas CSV</button></div><p class="privacy-tip">Resultados individuais não devem ser publicados em páginas abertas. Use contas de professor e políticas de acesso do banco.</p></div></div><div id="teacherCards" class="dashboard-cards"></div><div class="panel"><h3>Desempenho por aluno</h3><div class="table-wrap"><table id="teacherTable"><thead><tr><th>Aluno</th><th>Turma</th><th>Tentativas</th><th>Média</th><th>Último acesso</th></tr></thead><tbody></tbody></table></div></div><div class="panel"><h3>Dificuldades da turma</h3><div id="teacherSkills"></div></div></section>
-    <section id="screen-sobre" class="screen"><div class="section-head"><div><span class="eyebrow">PROJETO</span><h2>Sobre</h2></div></div><div class="about-grid"><article class="panel"><h3>Dupla Exclusão</h3><p><strong>Entre a cor e a condição: A realidade dos estudantes negros com deficiência na escola.</strong></p><p>Projeto educativo que trabalha racismo, capacitismo, acessibilidade, pertencimento, direitos e compromisso coletivo por meio de recursos digitais e atividades interativas.</p></article><article class="panel"><h3>Créditos</h3><p><b>Orientação pedagógica:</b> Prof. Cleilson Paiva</p><p><b>Projeto digital e desenvolvimento:</b> Prof. Carlos André Tavares de Lima</p><p><b>Alunos:</b> Antônio Anselmo e Gabrielly Rodrigues • 8º ano</p><p><b>Escola:</b> E.M.E.F. Pedro de Queiroz Ferreira</p></article><article class="panel"><h3>Funcionamento offline</h3><p>Como PWA, o aplicativo guarda o conteúdo principal em cache. Como APK/Capacitor, os arquivos ficam dentro do aplicativo e funcionam sem internet. A sincronização de resultados ocorre quando houver conexão.</p></article><article class="panel"><h3>Privacidade</h3><p>O aplicativo foi preparado para trabalhar com dados mínimos. O uso escolar real deve seguir as regras da escola e a legislação aplicável de proteção de dados, especialmente por envolver estudantes menores de idade.</p></article></div></section>
-    <section class="idealizadores-section" aria-labelledby="idealizadoresTitulo"><div class="idealizadores-head"><span class="eyebrow">IDEALIZADORES</span><h2 id="idealizadoresTitulo">Idealizadores do projeto</h2></div><div class="idealizadores-grid"><article class="idealizador-card"><div class="idealizador-funcao">IDEALIZAÇÃO E ORIENTAÇÃO PEDAGÓGICA</div><h3>Prof. Cleilson Paiva</h3><p>Professor de História • Gestor Escolar</p></article><article class="idealizador-card"><div class="idealizador-funcao">PROJETO DIGITAL E DESENVOLVIMENTO</div><h3>Prof. Carlos André Tavares de Lima</h3><p>Professor de Geografia • Administração Escolar • Criador de Projetos Digitais Educativos</p></article></div></section>
+    <section id="screen-home" class="screen active">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="premium-title-block">
+            <span class="premium-badge">Edição Municipal</span>
+            <h1>Dupla Exclusão</h1>
+            <h2>Entre a cor e a condição:</h2>
+            <p class="premium-official-name">A realidade dos estudantes negros com deficiência na escola</p>
+          </div>
+          <p class="hero-description">Uma experiência educativa com álbum de 36 figurinhas, banco de 150 questões, 10 simulados, game e acompanhamento pedagógico.</p>
+          <div class="hero-actions">
+            <button class="primary" data-screen="perfil">Começar / Identificar aluno</button>
+            <button class="secondary" id="prepareOfflineBtn">Preparar uso offline</button>
+          </div>
+          <div id="offlineStatus" class="status-note">O aplicativo funciona offline. Use o botão acima uma vez com internet para guardar também as 36 figurinhas e o game neste aparelho.</div>
+        </div>
+        <div class="hero-panel">
+          <img src="logo-pedro-queiroz.jpg" class="school-logo" alt="Brasão da E.M.E.F. Pedro de Queiroz Ferreira">
+          <div class="project-badge">3º lugar • Categoria PcD • Etapa Municipal</div>
+          <div class="credit-card">
+            <strong>Orientação pedagógica</strong>
+            <span>Prof. Cleilson Paiva</span>
+          </div>
+          <div class="credit-card">
+            <strong>Projeto digital e desenvolvimento</strong>
+            <span>Prof. Carlos André Tavares de Lima</span>
+          </div>
+          <div class="credit-card">
+            <strong>Alunos do projeto</strong>
+            <span>Antônio Anselmo e Gabrielly Rodrigues • 8º ano</span>
+          </div>
+          <div class="school-line">E.M.E.F. Pedro de Queiroz Ferreira</div>
+        </div>
+      </div>
+
+      <div class="feature-grid">
+        <article><span>🧩</span><h3>Álbum</h3><p>36 figurinhas, 6 páginas temáticas e pacotes conquistados por desempenho.</p></article>
+        <article><span>📝</span><h3>10 simulados</h3><p>10 questões por tentativa, sorteadas de um banco de 150 e alternativas embaralhadas.</p></article>
+        <article><span>🎮</span><h3>Game</h3><p>Game original preservado e disponível também dentro do APK offline.</p></article>
+        <article><span>📊</span><h3>Acompanhamento</h3><p>Resultados por aluno, simulado e habilidade, com exportação e sincronização opcional.</p></article>
+      </div>
+    </section>
+
+    <section id="screen-perfil" class="screen">
+      <div class="section-head">
+        <div><span class="eyebrow">IDENTIFICAÇÃO</span><h2>Perfil do aluno</h2></div>
+      </div>
+      <form id="profileForm" class="form-card">
+        <label>Nome do aluno <input id="studentName" maxlength="80" autocomplete="name" placeholder="Ex.: João da Silva"></label>
+        <label>Turma <input id="studentClass" maxlength="40" placeholder="Ex.: 8º A"></label>
+        <label>Código do aluno <input id="studentCode" maxlength="40" placeholder="Ex.: 8A-023"></label>
+        <p class="privacy-tip">Use apenas os dados necessários. Evite CPF, endereço, telefone ou informação de saúde.</p>
+        <div class="form-actions"><button type="submit" class="primary">Salvar perfil</button><button type="button" class="secondary" data-screen="home">Cancelar</button></div>
+      </form>
+    </section>
+
+    <section id="screen-album" class="screen">
+      <div class="section-head">
+        <div><span class="eyebrow">36 FIGURINHAS</span><h2>Álbum Dupla Exclusão</h2></div>
+        <div class="stats-inline">
+          <span>Pacotes <b id="packsStat">0</b></span>
+          <span>Coladas <b id="stickersStat">0</b>/36</span>
+          <button id="openPackBtn" class="primary small">Abrir pacote</button>
+        </div>
+      </div>
+      <div class="album-tabs" id="albumTabs"></div>
+      <div id="albumIntro" class="album-intro"></div>
+      <div id="albumGrid" class="sticker-grid"></div>
+    </section>
+
+    <section id="screen-simulados" class="screen">
+      <div class="section-head">
+        <div><span class="eyebrow">AVALIAÇÃO FORMATIVA</span><h2>10 simulados</h2><p>Cada tentativa seleciona 10 questões e embaralha automaticamente as alternativas.</p></div>
+      </div>
+      <div id="simList" class="sim-grid"></div>
+    </section>
+
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-shell">
+        <div class="quiz-top">
+          <div><span id="quizTag" class="eyebrow"></span><h2 id="quizTitle"></h2></div>
+          <div id="quizProgress" class="quiz-progress"></div>
+        </div>
+        <form id="quizForm">
+          <div id="quizQuestions"></div>
+          <div class="quiz-actions">
+            <button type="button" class="secondary" data-screen="simulados">Sair sem concluir</button>
+            <button type="submit" class="primary">Finalizar simulado</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="screen-pesquisas" class="screen">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">ESCUTA DOS ESTUDANTES</span>
+          <h2>Pesquisas</h2>
+          <p>Duas pesquisas com 10 perguntas cada. Em todas elas, o estudante pode marcar uma alternativa, escolher “Nenhuma das opções” e também escrever um complemento.</p>
+        </div>
+      </div>
+      <div id="surveyTabs" class="survey-tabs"></div>
+      <div id="surveyIntro" class="panel survey-intro"></div>
+      <form id="surveyForm" class="survey-form">
+        <div id="surveyQuestions"></div>
+        <div id="surveyStatus" class="status-note"></div>
+        <div class="form-actions">
+          <button id="surveySaveBtn" type="submit" class="primary">Salvar pesquisa</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="screen-progresso" class="screen">
+      <div class="section-head">
+        <div><span class="eyebrow">MEU DESEMPENHO</span><h2>Progresso do aluno</h2></div>
+        <button id="syncBtn" class="secondary">Sincronizar agora</button>
+      </div>
+      <div id="progressSummary" class="dashboard-cards"></div>
+      <div class="panel">
+        <h3>Evolução por simulado</h3>
+        <div id="studentAttempts"></div>
+      </div>
+      <div class="panel">
+        <h3>Habilidades que precisam de atenção</h3>
+        <div id="studentSkills"></div>
+      </div>
+    </section>
+
+    <section id="screen-professor" class="screen institutional-locked">
+      <div class="section-head">
+        <div><span class="eyebrow">ACESSO RESTRITO • INTELIGÊNCIA PEDAGÓGICA</span><h2>DASHBOARD INSTITUCIONAL PARA TOMADA DE DECISÃO</h2><p>Análise pedagógica por escola, turma e aluno, com indicadores para acompanhamento, intervenção e avaliação da experiência.</p></div>
+      </div>
+      <div class="teacher-grid">
+        <div class="panel">
+          <h3>ACESSO INSTITUCIONAL</h3>
+          <form id="teacherLoginForm" class="compact-form">
+            <label>E-mail institucional <input id="teacherEmail" type="email" autocomplete="username"></label>
+            <label>Senha <input id="teacherPassword" type="password" autocomplete="current-password"></label>
+            <button class="primary" type="submit">Entrar no dashboard</button>
+            <button class="secondary" type="button" id="teacherLogoutBtn">Sair</button>
+          </form>
+          <div id="teacherAuthStatus" class="status-note"></div>
+        </div>
+        <div class="panel">
+          <h3>Ações</h3>
+          <div class="action-stack">
+            <button id="loadTeacherDataBtn" class="primary">Atualizar dados</button>
+            <button id="exportTeacherCsvBtn" class="secondary">Exportar resultados CSV</button>
+            <button id="exportSurveyCsvBtn" class="secondary">Exportar pesquisas CSV</button>
+          </div>
+          <p class="privacy-tip">Resultados individuais não devem ser publicados em páginas abertas. Use contas de professor e políticas de acesso do banco.</p>
+        </div>
+      </div>
+      <div id="teacherCards" class="dashboard-cards"></div>
+      <div class="panel">
+        <h3>Desempenho por aluno</h3>
+        <div class="table-wrap"><table id="teacherTable"><thead><tr><th>Aluno</th><th>Turma</th><th>Tentativas</th><th>Média</th><th>Último acesso</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="panel">
+        <h3>Dificuldades da turma</h3>
+        <div id="teacherSkills"></div>
+      </div>
+    </section>
+
+    <section id="screen-sobre" class="screen">
+      <div class="section-head"><div><span class="eyebrow">PROJETO</span><h2>Sobre</h2></div></div>
+      <div class="about-grid">
+        <article class="panel">
+          <h3>Dupla Exclusão</h3>
+          <p><strong>Entre a cor e a condição: A realidade dos estudantes negros com deficiência na escola.</strong></p>
+          <p>Projeto educativo que trabalha racismo, capacitismo, acessibilidade, pertencimento, direitos e compromisso coletivo por meio de recursos digitais e atividades interativas.</p>
+        </article>
+        <article class="panel">
+          <h3>Créditos</h3>
+          <p><b>Orientação pedagógica:</b> Prof. Cleilson Paiva</p>
+          <p><b>Projeto digital e desenvolvimento:</b> Prof. Carlos André Tavares de Lima</p>
+          <p><b>Alunos:</b> Antônio Anselmo e Gabrielly Rodrigues • 8º ano</p>
+          <p><b>Escola:</b> E.M.E.F. Pedro de Queiroz Ferreira</p>
+        </article>
+        <article class="panel">
+          <h3>Funcionamento offline</h3>
+          <p>Como PWA, o aplicativo guarda o conteúdo principal em cache. Como APK/Capacitor, os arquivos ficam dentro do aplicativo e funcionam sem internet. A sincronização de resultados ocorre quando houver conexão.</p>
+        </article>
+        <article class="panel">
+          <h3>Privacidade</h3>
+          <p>O aplicativo foi preparado para trabalhar com dados mínimos. O uso escolar real deve seguir as regras da escola e a legislação aplicável de proteção de dados, especialmente por envolver estudantes menores de idade.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="idealizadores-section" aria-labelledby="idealizadoresTitulo">
+      <div class="idealizadores-head">
+        <span class="eyebrow">IDEALIZADORES</span>
+        <h2 id="idealizadoresTitulo">Idealizadores do projeto</h2>
+      </div>
+      <div class="idealizadores-grid">
+        <article class="idealizador-card">
+          <div class="idealizador-funcao">IDEALIZAÇÃO E ORIENTAÇÃO PEDAGÓGICA</div>
+          <h3>Prof. Cleilson Paiva</h3>
+          <p>Professor de História • Gestor Escolar</p>
+        </article>
+        <article class="idealizador-card">
+          <div class="idealizador-funcao">PROJETO DIGITAL E DESENVOLVIMENTO</div>
+          <h3>Prof. Carlos André Tavares de Lima</h3>
+          <p>Professor de Geografia • Administração Escolar • Criador de Projetos Digitais Educativos</p>
+        </article>
+      </div>
+    </section>
   </main>
-  <footer><span>Dupla Exclusão • E.M.E.F. Pedro de Queiroz Ferreira</span><span id="networkBadge">Verificando conexão...</span></footer>
+
+  <footer>
+    <span>Dupla Exclusão • E.M.E.F. Pedro de Queiroz Ferreira</span>
+    <span id="networkBadge">Verificando conexão...</span>
+  </footer>
 </div>
-<div id="toast" class="toast" role="status" aria-live="polite"></div><div id="modal" class="modal hidden" aria-hidden="true"><div class="modal-card"><button id="modalClose" class="modal-close" aria-label="Fechar">×</button><div id="modalContent"></div></div></div>
-<script src="config.js"></script><script src="question-bank.js"></script><script>
-window.STICKERS = [{"numero":1,"titulo":"Fachada da Escola Pedro de Queiroz Ferreira","tema":"Identidade do projeto","raridade":"RARA","pagina":1},{"numero":2,"titulo":"Alunos apresentadores","tema":"Protagonismo estudantil","raridade":"RARA","pagina":1},{"numero":3,"titulo":"Dupla exclusão na escola","tema":"Racismo e capacitismo","raridade":"COMUM","pagina":1},{"numero":4,"titulo":"Racismo","tema":"Discriminação racial","raridade":"COMUM","pagina":1},{"numero":5,"titulo":"Capacitismo","tema":"Discriminação contra pessoas com deficiência","raridade":"COMUM","pagina":1},{"numero":6,"titulo":"Direito à inclusão","tema":"Direitos humanos","raridade":"ESPECIAL","pagina":1},{"numero":7,"titulo":"Exclusão social","tema":"Isolamento","raridade":"COMUM","pagina":2},{"numero":8,"titulo":"Preconceito racial","tema":"Racismo no cotidiano","raridade":"COMUM","pagina":2},{"numero":9,"titulo":"Baixa expectativa sobre o aluno","tema":"Potencial do aluno","raridade":"COMUM","pagina":2},{"numero":10,"titulo":"Silenciamento","tema":"Voz e escuta","raridade":"COMUM","pagina":2},{"numero":11,"titulo":"Representatividade","tema":"Identidade e valorização","raridade":"ESPECIAL","pagina":2},{"numero":12,"titulo":"Escola antirracista","tema":"Compromisso institucional","raridade":"ESPECIAL","pagina":2},{"numero":13,"titulo":"Tratar como incapaz","tema":"Potencial da pessoa com deficiência","raridade":"COMUM","pagina":3},{"numero":14,"titulo":"Falta de acessibilidade","tema":"Barreiras físicas","raridade":"COMUM","pagina":3},{"numero":15,"titulo":"Barreiras na comunicação","tema":"Acessibilidade comunicacional","raridade":"COMUM","pagina":3},{"numero":16,"titulo":"Exclusão nas atividades","tema":"Participação escolar","raridade":"COMUM","pagina":3},{"numero":17,"titulo":"Autonomia e respeito","tema":"Independência","raridade":"ESPECIAL","pagina":3},{"numero":18,"titulo":"Inclusão verdadeira","tema":"Pertencimento","raridade":"ESPECIAL","pagina":3},{"numero":19,"titulo":"Libras","tema":"Língua Brasileira de Sinais","raridade":"COMUM","pagina":4},{"numero":20,"titulo":"Material adaptado","tema":"Recursos pedagógicos","raridade":"COMUM","pagina":4},{"numero":21,"titulo":"Mobilidade","tema":"Acesso físico","raridade":"COMUM","pagina":4},{"numero":22,"titulo":"Tecnologia assistiva","tema":"Recursos de apoio","raridade":"COMUM","pagina":4},{"numero":23,"titulo":"Apoio pedagógico","tema":"Aprendizagem","raridade":"COMUM","pagina":4},{"numero":24,"titulo":"Participação de todos","tema":"Participação coletiva","raridade":"ESPECIAL","pagina":4},{"numero":25,"titulo":"Família presente","tema":"Parceria","raridade":"COMUM","pagina":5},{"numero":26,"titulo":"Conselho escolar","tema":"Participação democrática","raridade":"ESPECIAL","pagina":5},{"numero":27,"titulo":"Professor mediador","tema":"Mediação de conflitos","raridade":"COMUM","pagina":5},{"numero":28,"titulo":"Gestão comprometida","tema":"Gestão escolar","raridade":"COMUM","pagina":5},{"numero":29,"titulo":"Colegas aliados","tema":"Solidariedade","raridade":"ESPECIAL","pagina":5},{"numero":30,"titulo":"Comunidade escolar","tema":"Rede de apoio","raridade":"COMUM","pagina":5},{"numero":31,"titulo":"Combate ao bullying","tema":"Violência escolar","raridade":"COMUM","pagina":6},{"numero":32,"titulo":"Denúncia da discriminação","tema":"Proteção","raridade":"COMUM","pagina":6},{"numero":33,"titulo":"Respeito às diferenças","tema":"Diferenças","raridade":"ESPECIAL","pagina":6},{"numero":34,"titulo":"Protagonismo estudantil","tema":"Estudantes como agentes","raridade":"ESPECIAL","pagina":6},{"numero":35,"titulo":"Escola que inclui","tema":"Transformação escolar","raridade":"RARA","pagina":6},{"numero":36,"titulo":"Cidade que respeita","tema":"Impacto social","raridade":"RARA","pagina":6}];
-window.ALBUM_PAGES=[{"pagina":1,"titulo":"Identidade do Projeto","texto":"A dupla exclusão acontece quando uma pessoa sofre mais de uma forma de discriminação ao mesmo tempo. Na escola, isso pode ocorrer quando estudantes negros com deficiência enfrentam racismo, capacitismo e barreiras de participação."},{"pagina":2,"titulo":"Racismo no Ambiente Escolar","texto":"O racismo no ambiente escolar pode aparecer em apelidos, piadas, invisibilidade, baixa expectativa e ausência de representatividade. Uma escola antirracista reconhece essas práticas e trabalha para combatê-las."},{"pagina":3,"titulo":"Capacitismo","texto":"O capacitismo acontece quando pessoas com deficiência são tratadas como incapazes ou impedidas de participar plenamente. Inclusão verdadeira significa garantir autonomia, respeito, acessibilidade e oportunidades."},{"pagina":4,"titulo":"Acessibilidade e Aprendizagem","texto":"A acessibilidade não é favor. É direito. Ela envolve comunicação, mobilidade, materiais adaptados, tecnologias assistivas e atitudes que permitam a participação de todos os estudantes."},{"pagina":5,"titulo":"Família, Escola e Comunidade","texto":"A inclusão depende de uma rede de apoio. Família, escola, professores, colegas, conselho escolar e comunidade precisam dialogar para garantir respeito, aprendizagem e pertencimento."},{"pagina":6,"titulo":"Compromisso Coletivo","texto":"Combater racismo e capacitismo é responsabilidade de toda a comunidade escolar. Uma escola que inclui ajuda a construir uma cidade que respeita as diferenças."}];
-</script><script src="app.js"></script><script src="auth-institucional.js"></script>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal" class="modal hidden" aria-hidden="true">
+  <div class="modal-card">
+    <button id="modalClose" class="modal-close" aria-label="Fechar">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="question-bank.js"></script>
+<script>
+window.STICKERS = [{"numero": 1, "titulo": "Fachada da Escola Pedro de Queiroz Ferreira", "tema": "Identidade do projeto", "raridade": "RARA", "pagina": 1}, {"numero": 2, "titulo": "Alunos apresentadores", "tema": "Protagonismo estudantil", "raridade": "RARA", "pagina": 1}, {"numero": 3, "titulo": "Dupla exclusão na escola", "tema": "Racismo e capacitismo", "raridade": "COMUM", "pagina": 1}, {"numero": 4, "titulo": "Racismo", "tema": "Discriminação racial", "raridade": "COMUM", "pagina": 1}, {"numero": 5, "titulo": "Capacitismo", "tema": "Discriminação contra pessoas com deficiência", "raridade": "COMUM", "pagina": 1}, {"numero": 6, "titulo": "Direito à inclusão", "tema": "Direitos humanos", "raridade": "ESPECIAL", "pagina": 1}, {"numero": 7, "titulo": "Exclusão social", "tema": "Isolamento", "raridade": "COMUM", "pagina": 2}, {"numero": 8, "titulo": "Preconceito racial", "tema": "Racismo no cotidiano", "raridade": "COMUM", "pagina": 2}, {"numero": 9, "titulo": "Baixa expectativa sobre o aluno", "tema": "Potencial do aluno", "raridade": "COMUM", "pagina": 2}, {"numero": 10, "titulo": "Silenciamento", "tema": "Voz e escuta", "raridade": "COMUM", "pagina": 2}, {"numero": 11, "titulo": "Representatividade", "tema": "Identidade e valorização", "raridade": "ESPECIAL", "pagina": 2}, {"numero": 12, "titulo": "Escola antirracista", "tema": "Compromisso institucional", "raridade": "ESPECIAL", "pagina": 2}, {"numero": 13, "titulo": "Tratar como incapaz", "tema": "Potencial da pessoa com deficiência", "raridade": "COMUM", "pagina": 3}, {"numero": 14, "titulo": "Falta de acessibilidade", "tema": "Barreiras físicas", "raridade": "COMUM", "pagina": 3}, {"numero": 15, "titulo": "Barreiras na comunicação", "tema": "Acessibilidade comunicacional", "raridade": "COMUM", "pagina": 3}, {"numero": 16, "titulo": "Exclusão nas atividades", "tema": "Participação escolar", "raridade": "COMUM", "pagina": 3}, {"numero": 17, "titulo": "Autonomia e respeito", "tema": "Independência", "raridade": "ESPECIAL", "pagina": 3}, {"numero": 18, "titulo": "Inclusão verdadeira", "tema": "Pertencimento", "raridade": "ESPECIAL", "pagina": 3}, {"numero": 19, "titulo": "Libras", "tema": "Língua Brasileira de Sinais", "raridade": "COMUM", "pagina": 4}, {"numero": 20, "titulo": "Material adaptado", "tema": "Recursos pedagógicos", "raridade": "COMUM", "pagina": 4}, {"numero": 21, "titulo": "Mobilidade", "tema": "Acesso físico", "raridade": "COMUM", "pagina": 4}, {"numero": 22, "titulo": "Tecnologia assistiva", "tema": "Recursos de apoio", "raridade": "COMUM", "pagina": 4}, {"numero": 23, "titulo": "Apoio pedagógico", "tema": "Aprendizagem", "raridade": "COMUM", "pagina": 4}, {"numero": 24, "titulo": "Participação de todos", "tema": "Participação coletiva", "raridade": "ESPECIAL", "pagina": 4}, {"numero": 25, "titulo": "Família presente", "tema": "Parceria", "raridade": "COMUM", "pagina": 5}, {"numero": 26, "titulo": "Conselho escolar", "tema": "Participação democrática", "raridade": "ESPECIAL", "pagina": 5}, {"numero": 27, "titulo": "Professor mediador", "tema": "Mediação de conflitos", "raridade": "COMUM", "pagina": 5}, {"numero": 28, "titulo": "Gestão comprometida", "tema": "Gestão escolar", "raridade": "COMUM", "pagina": 5}, {"numero": 29, "titulo": "Colegas aliados", "tema": "Solidariedade", "raridade": "ESPECIAL", "pagina": 5}, {"numero": 30, "titulo": "Comunidade escolar", "tema": "Rede de apoio", "raridade": "COMUM", "pagina": 5}, {"numero": 31, "titulo": "Combate ao bullying", "tema": "Violência escolar", "raridade": "COMUM", "pagina": 6}, {"numero": 32, "titulo": "Denúncia da discriminação", "tema": "Proteção", "raridade": "COMUM", "pagina": 6}, {"numero": 33, "titulo": "Respeito às diferenças", "tema": "Diferenças", "raridade": "ESPECIAL", "pagina": 6}, {"numero": 34, "titulo": "Protagonismo estudantil", "tema": "Estudantes como agentes", "raridade": "ESPECIAL", "pagina": 6}, {"numero": 35, "titulo": "Escola que inclui", "tema": "Transformação escolar", "raridade": "RARA", "pagina": 6}, {"numero": 36, "titulo": "Cidade que respeita", "tema": "Impacto social", "raridade": "RARA", "pagina": 6}];
+window.ALBUM_PAGES = [{"pagina": 1, "titulo": "Identidade do Projeto", "texto": "A dupla exclusão acontece quando uma pessoa sofre mais de uma forma de discriminação ao mesmo tempo. Na escola, isso pode ocorrer quando estudantes negros com deficiência enfrentam racismo, capacitismo e barreiras de participação."}, {"pagina": 2, "titulo": "Racismo no Ambiente Escolar", "texto": "O racismo no ambiente escolar pode aparecer em apelidos, piadas, invisibilidade, baixa expectativa e ausência de representatividade. Uma escola antirracista reconhece essas práticas e trabalha para combatê-las."}, {"pagina": 3, "titulo": "Capacitismo", "texto": "O capacitismo acontece quando pessoas com deficiência são tratadas como incapazes ou impedidas de participar plenamente. Inclusão verdadeira significa garantir autonomia, respeito, acessibilidade e oportunidades."}, {"pagina": 4, "titulo": "Acessibilidade e Aprendizagem", "texto": "A acessibilidade não é favor. É direito. Ela envolve comunicação, mobilidade, materiais adaptados, tecnologias assistivas e atitudes que permitam a participação de todos os estudantes."}, {"pagina": 5, "titulo": "Família, Escola e Comunidade", "texto": "A inclusão depende de uma rede de apoio. Família, escola, professores, colegas, conselho escolar e comunidade precisam dialogar para garantir respeito, aprendizagem e pertencimento."}, {"pagina": 6, "titulo": "Compromisso Coletivo", "texto": "Combater racismo e capacitismo é responsabilidade de toda a comunidade escolar. Uma escola que inclui ajuda a construir uma cidade que respeita as diferenças."}];
+</script>
+<script src="app.js"></script>
+<script src="auth-institucional.js"></script>
 <script src="dashboard-institucional.js"></script>
-</body></html>
+</body>
+</html>

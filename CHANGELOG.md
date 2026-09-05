@@ -1,5 +1,20 @@
 # Changelog — Dupla Exclusão
 
+## v11 — 04/09/2026
+- Supabase institucional ativado para sincronização dos simulados e pesquisas.
+- Área **Professor** convertida em **ACESSO INSTITUCIONAL**, bloqueada até autenticação válida.
+- Perfis preparados: Administrador do Sistema, Gestor Escolar, Coordenação Pedagógica e Professor.
+- Dashboard Institucional para Tomada de Decisão com filtros por turma/aluno/simulado.
+- Gráficos de barras verticais, barras horizontais, pizza/rosca, mapa de calor, evolução e faixas de acompanhamento.
+- Análise das duas pesquisas institucionais com gráficos e respostas abertas.
+- Sincronização automática das pesquisas com o Supabase quando houver internet.
+- Correção do travamento causado pelo MutationObserver dos simulados.
+- Correção da tela de pesquisas para renderizar as 10 perguntas e o botão Salvar pesquisa.
+- Simulados concluídos permanecem bloqueados para impedir obtenção repetida de figurinhas.
+- RLS do Supabase endurecido com funções auxiliares movidas para schema privado.
+- Cache offline atualizado para v11.
+- Testes automatizados de navegação, bloqueio pré-login, login por perfil, dashboard, pesquisas, logout e bundle do APK concluídos sem erros.
+
 ## v4 — 04/09/2026
 - Nomenclatura institucional do Prof. Cleilson Paiva atualizada para **Professor de História • Gestor Escolar**.
 - Créditos mantidos proporcionais entre os idealizadores do projeto.
