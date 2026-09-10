@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v24";
-const FULL = "dupla-exclusao-full-v24";
+const CORE = "dupla-exclusao-core-v24-1";
+const FULL = "dupla-exclusao-full-v24-1";
 
 const core = [
   "./",
@@ -15,14 +15,18 @@ const core = [
   "survey-v24.js",
   "bullying-v24.js",
   "question-bank.js",
+  "album-data-v24.js",
   "manifest.webmanifest",
   "logo-pedro-queiroz.jpg",
   "icon-192.png",
   "icon-512.png"
 ];
 
-const stickers = Array.from({ length: 36 }, (_, i) =>
+const stickersFolder = Array.from({ length: 36 }, (_, i) =>
   `figurinhas/${String(i + 1).padStart(2, "0")}.webp`
+);
+const stickersRoot = Array.from({ length: 36 }, (_, i) =>
+  `${String(i + 1).padStart(2, "0")}.webp`
 );
 
 const game = [
@@ -43,7 +47,8 @@ const game = [
 ];
 
 const optionalOffline = [
-  ...stickers,
+  ...stickersFolder,
+  ...stickersRoot,
   ...game,
   "qrcode_album_dupla_exclusao.png",
   "qrcode-album-dupla-exclusao.png"
