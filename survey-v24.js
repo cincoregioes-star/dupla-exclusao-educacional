@@ -24,19 +24,33 @@
   function finalTabActive(){return $("#surveyTabs [data-survey='didatica'].active");}
   function finalSaved(){return Boolean(surveys().didatica);}
 
+  function setTextIfChanged(el,text){
+    if(el && el.textContent!==text) el.textContent=text;
+  }
+
   function unlockFinalUI(){
     if(!albumComplete()||!finalTabActive()||finalSaved())return;
     const intro=$("#surveyIntro");
     if(intro){
       intro.querySelector(".survey-locked")?.remove();
       if(!intro.querySelector(".v24-auto-release")){
-        const n=document.createElement("div");n.className="survey-complete v24-auto-release";n.textContent="✓ Pesquisa Final liberada automaticamente: álbum completo 36/36.";intro.appendChild(n);
+        const n=document.createElement("div");
+        n.className="survey-complete v24-auto-release";
+        n.textContent="✓ Pesquisa Final liberada automaticamente: álbum completo 36/36.";
+        intro.appendChild(n);
       }
     }
-    $$("#surveyForm input, #surveyForm textarea").forEach(el=>el.disabled=false);
-    const save=$("#surveySaveBtn");if(save){save.disabled=false;save.textContent="Salvar Pesquisa Final";}
-    const status=$("#surveyStatus");if(status)status.textContent="Álbum completo. Responda as 10 perguntas; as respostas serão enviadas ao painel institucional.";
+    $$("#surveyForm input, #surveyForm textarea").forEach(el=>{if(el.disabled)el.disabled=false;});
+    const save=$("#surveySaveBtn");
+    if(save){save.disabled=false;setTextIfChanged(save,"Salvar Pesquisa Final");}
+    setTextIfChanged($("#surveyStatus"),"Álbum completo. Responda as 10 perguntas; as respostas serão enviadas ao painel institucional.");
     window.DuplaV24?.setupSurveyPager?.(false);
+  }
+
+  function scheduleUnlock(){
+    [0,120,350,800,1500].forEach(ms=>setTimeout(()=>{
+      try{updateCopy();unlockFinalUI();}catch(err){console.warn("v24 survey ui",err);}
+    },ms));
   }
 
   async function sendFinal(submission){
@@ -55,7 +69,7 @@
       completed_at:submission.completedAt,
       unlock_source:"album_complete",
       album_completed_at:submission.albumCompletedAt,
-      app_version:"v24"
+      app_version:"v24.3"
     };
     const response=await fetch(`${s.url.replace(/\/$/,"")}/rest/v1/${encodeURIComponent(s.surveysTable||"survey_responses")}`,{
       method:"POST",
@@ -113,26 +127,23 @@
 
   function updateCopy(){
     const header=$("#screen-pesquisas .section-head p");
-    if(header)header.textContent="A Pesquisa Inicial fica disponível desde o início. A Pesquisa Final é liberada automaticamente quando o aluno completa 36/36 figurinhas; professor ou gestão também podem liberá-la antecipadamente.";
+    setTextIfChanged(header,"A Pesquisa Inicial fica disponível desde o início. A Pesquisa Final é liberada automaticamente quando o aluno completa 36/36 figurinhas; professor ou gestão também podem liberá-la antecipadamente.");
     const control=$("#institutionalAssignments .hint");
-    if(control)control.textContent="Professor, Gestor Escolar e Administrador podem solicitar avaliações e liberar antecipadamente a Pesquisa Final. Ao completar o álbum 36/36, ela é liberada automaticamente para o aluno.";
-  }
-
-  function observe(){
-    const screen=$("#screen-pesquisas");if(!screen)return;
-    const observer=new MutationObserver(()=>{updateCopy();setTimeout(unlockFinalUI,0);});
-    observer.observe(screen,{childList:true,subtree:true,attributes:true,attributeFilter:["class","disabled"]});
+    setTextIfChanged(control,"Professor, Gestor Escolar e Administrador podem solicitar avaliações e liberar antecipadamente a Pesquisa Final. Ao completar o álbum 36/36, ela é liberada automaticamente para o aluno.");
   }
 
   function init(){
-    updateCopy();observe();
+    updateCopy();
     document.addEventListener("submit",captureFinalSubmit,true);
-    document.addEventListener("click",e=>{if(e.target.closest("#surveyTabs button"))setTimeout(unlockFinalUI,30);},true);
-    window.addEventListener("dupla:album-complete",()=>{setTimeout(()=>{updateCopy();unlockFinalUI();},30);});
-    window.addEventListener("online",syncPendingAutoFinal);
+    document.addEventListener("click",e=>{
+      if(e.target.closest("#surveyTabs button")||e.target.closest('[data-screen="pesquisas"]')) scheduleUnlock();
+    },true);
+    window.addEventListener("dupla:album-complete",()=>{albumCompletedAt();scheduleUnlock();});
+    window.addEventListener("online",()=>{syncPendingAutoFinal();scheduleUnlock();});
     if(albumComplete())albumCompletedAt();
     syncPendingAutoFinal();
+    scheduleUnlock();
   }
-  window.DuplaSurveyV24={albumComplete,unlockFinalUI,syncPendingAutoFinal};
+  window.DuplaSurveyV24={albumComplete,unlockFinalUI,syncPendingAutoFinal,scheduleUnlock};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
