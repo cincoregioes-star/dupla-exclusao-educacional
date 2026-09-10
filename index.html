@@ -26,8 +26,10 @@
       <button data-screen="progresso">Meu progresso</button>
       <button data-screen="denuncia">Relatar bullying / discriminação</button>
       <button data-screen="professor">Professor / Gestão</button>
+      <button data-screen="idealizadores">Idealizadores</button>
       <button data-screen="sobre">Sobre</button>
       <button id="prepareOfflineBtn">Preparar uso offline</button>
+      <div class="v24-menu-section"><strong>Início do projeto</strong><span>Antônio Anselmo</span><span>Gabrielly Rodrigues</span><small>Alunos do 8º ano • E.M.E.F. Pedro de Queiroz Ferreira</small></div>
     </nav>
   </header>
 
@@ -64,11 +66,7 @@
     <section id="screen-album" class="screen">
       <div class="section-head">
         <div><span class="eyebrow">36 FIGURINHAS</span><h2>Álbum Dupla Exclusão</h2></div>
-        <div class="stats-inline">
-          <span>Pacotes <b id="packsStat">0</b></span>
-          <span>Coladas <b id="stickersStat">0</b>/36</span>
-          <button id="openPackBtn" class="primary small">Abrir pacote</button>
-        </div>
+        <div class="stats-inline"><span>Pacotes <b id="packsStat">0</b></span><span>Coladas <b id="stickersStat">0</b>/36</span><button id="openPackBtn" class="primary small">Abrir pacote</button></div>
       </div>
       <div class="album-tabs" id="albumTabs"></div>
       <div id="albumIntro" class="album-intro"></div>
@@ -76,7 +74,7 @@
     </section>
 
     <section id="screen-simulados" class="screen">
-      <div class="section-head"><div><span class="eyebrow">APRENDIZAGEM + AVALIAÇÃO</span><h2>10 simulados</h2><p>Escolha um simulado. As telas avançam horizontalmente, com setas à esquerda e à direita.</p></div></div>
+      <div class="section-head"><div><span class="eyebrow">APRENDIZAGEM + AVALIAÇÃO</span><h2>10 simulados</h2><p>Role a página para cima ou para baixo e escolha o simulado desejado.</p></div></div>
       <div id="requestedEvaluations"></div>
       <div id="simList" class="sim-grid"></div>
     </section>
@@ -84,10 +82,7 @@
     <section id="screen-quiz" class="screen">
       <div class="quiz-shell">
         <div class="quiz-top"><div><span id="quizTag" class="eyebrow"></span><h2 id="quizTitle"></h2></div><div id="quizProgress" class="quiz-progress"></div></div>
-        <form id="quizForm">
-          <div id="quizQuestions"></div>
-          <div class="quiz-actions"><button type="button" class="secondary" data-screen="simulados">Sair do simulado</button><button type="submit" class="primary">Finalizar simulado</button></div>
-        </form>
+        <form id="quizForm"><div id="quizQuestions"></div><div class="quiz-actions"><button type="button" class="secondary" data-screen="simulados">Sair do simulado</button><button type="submit" class="primary">Finalizar simulado</button></div></form>
       </div>
     </section>
 
@@ -95,11 +90,7 @@
       <div class="section-head"><div><span class="eyebrow">ESCUTA DOS ESTUDANTES</span><h2>Pesquisas</h2><p>A Pesquisa Inicial fica disponível desde o início. A Pesquisa Final é liberada automaticamente ao completar 36/36 figurinhas e também pode ser liberada antecipadamente pela equipe pedagógica.</p></div></div>
       <div id="surveyTabs" class="survey-tabs"></div>
       <div id="surveyIntro" class="panel survey-intro"></div>
-      <form id="surveyForm" class="survey-form">
-        <div id="surveyQuestions"></div>
-        <div id="surveyStatus" class="status-note"></div>
-        <div class="form-actions"><button id="surveySaveBtn" type="submit" class="primary">Salvar pesquisa</button></div>
-      </form>
+      <form id="surveyForm" class="survey-form"><div id="surveyQuestions"></div><div id="surveyStatus" class="status-note"></div><div class="form-actions"><button id="surveySaveBtn" type="submit" class="primary">Salvar pesquisa</button></div></form>
     </section>
 
     <section id="screen-progresso" class="screen">
@@ -111,39 +102,24 @@
 
     <section id="screen-denuncia" class="screen">
       <div class="v24-report-shell">
-        <div class="v24-report-head">
-          <span class="eyebrow">ESCUTA PROTEGIDA</span>
-          <h2>Relatar bullying ou discriminação</h2>
-          <p>Use este espaço para informar algo que aconteceu com você, que você presenciou ou que um colega contou. O relato será acessado somente por equipe institucional autorizada.</p>
-        </div>
+        <div class="v24-report-head"><span class="eyebrow">ESCUTA PROTEGIDA</span><h2>Relatar bullying ou discriminação</h2><p>Use este espaço para informar algo que aconteceu com você, que você presenciou ou que um colega contou. O relato será acessado somente por equipe institucional autorizada.</p></div>
         <form id="bullyingReportForm">
           <div class="v24-report-column">
-            <label class="v24-report-label">Situação
-              <select id="bullyingContext">
-                <option value="aconteceu_comigo">Aconteceu comigo</option>
-                <option value="presenciei">Eu presenciei</option>
-                <option value="relato_de_colega">Um colega me contou</option>
-              </select>
-            </label>
+            <label class="v24-report-label">Situação<select id="bullyingContext"><option value="aconteceu_comigo">Aconteceu comigo</option><option value="presenciei">Eu presenciei</option><option value="relato_de_colega">Um colega me contou</option></select></label>
             <label class="v24-report-label">Data aproximada do fato<input id="bullyingDate" type="date"></label>
-            <div class="v24-report-label">
-              <span>Tipo de bullying / discriminação</span>
-              <div class="v24-type-grid">
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="verbal"><span>Verbal — xingamentos, apelidos, humilhações</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="fisico"><span>Físico — empurrões, agressões, danos a objetos</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="social"><span>Social — exclusão, isolamento, espalhar boatos</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="cyberbullying"><span>Cyberbullying — mensagens, grupos, redes sociais</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="racista"><span>Racista — ataques ligados à cor, raça ou origem</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="capacitista"><span>Capacitista — ataques ligados à deficiência</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="aparencia"><span>Aparência/corpo — peso, cabelo, roupa ou aparência</span></label>
-                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="outro"><span>Outro tipo de intimidação ou discriminação</span></label>
-              </div>
-            </div>
+            <div class="v24-report-label"><span>Tipo de bullying / discriminação</span><div class="v24-type-grid">
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="verbal"><span>Verbal — xingamentos, apelidos, humilhações</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="fisico"><span>Físico — empurrões, agressões, danos a objetos</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="social"><span>Social — exclusão, isolamento, espalhar boatos</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="cyberbullying"><span>Cyberbullying — mensagens, grupos, redes sociais</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="racista"><span>Racista — ataques ligados à cor, raça ou origem</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="capacitista"><span>Capacitista — ataques ligados à deficiência</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="aparencia"><span>Aparência/corpo — peso, cabelo, roupa ou aparência</span></label>
+              <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="outro"><span>Outro tipo de intimidação ou discriminação</span></label>
+            </div></div>
           </div>
           <div class="v24-report-column">
-            <label class="v24-report-label">Conte o que aconteceu
-              <textarea id="bullyingDescription" maxlength="3000" placeholder="Descreva o fato, onde aconteceu, quem estava presente e o que você considera importante."></textarea>
-            </label>
+            <label class="v24-report-label">Conte o que aconteceu<textarea id="bullyingDescription" maxlength="3000" placeholder="Descreva o fato, onde aconteceu, quem estava presente e o que você considera importante."></textarea></label>
             <div class="v24-report-note">Este espaço não substitui atendimento de emergência. Em risco imediato, procure um adulto responsável da escola no mesmo momento.</div>
             <div id="bullyingReportStatus" class="status-note" role="status" aria-live="polite"></div>
             <div class="v24-report-actions"><button type="button" class="secondary" data-screen="home">Cancelar</button><button type="submit" class="primary">Enviar relato</button></div>
@@ -153,37 +129,29 @@
     </section>
 
     <section id="screen-professor" class="screen institutional-locked">
-      <div class="section-head"><div><span class="eyebrow">ACESSO RESTRITO</span><h2>DASHBOARD INSTITUCIONAL PARA TOMADA DE DECISÃO</h2><p>Resultados, pesquisas, alertas e acompanhamento pedagógico.</p></div></div>
+      <div class="section-head"><div><span class="eyebrow">ACESSO RESTRITO</span><h2>Dashboard institucional para tomada de decisão</h2><p>Resultados, pesquisas, alertas e acompanhamento pedagógico.</p></div></div>
       <div class="teacher-grid">
-        <div class="panel">
-          <h3>ACESSO INSTITUCIONAL</h3>
-          <form id="teacherLoginForm" class="compact-form">
-            <label>E-mail institucional <input id="teacherEmail" type="email" autocomplete="username"></label>
-            <label>Senha <input id="teacherPassword" type="password" autocomplete="current-password"></label>
-            <button class="primary" type="submit">Entrar no dashboard</button>
-            <button class="secondary" type="button" id="teacherLogoutBtn">Sair</button>
-          </form>
-          <div id="teacherAuthStatus" class="status-note"></div>
-        </div>
-        <div class="panel">
-          <h3>Ações</h3>
-          <div class="action-stack">
-            <button id="loadTeacherDataBtn" class="primary">Atualizar dados</button>
-            <button id="exportTeacherCsvBtn" class="secondary">Exportar resultados CSV</button>
-            <button id="exportSurveyCsvBtn" class="secondary">Exportar pesquisas CSV</button>
-          </div>
-        </div>
+        <div class="panel"><h3>Acesso institucional</h3><form id="teacherLoginForm" class="compact-form"><label>E-mail institucional <input id="teacherEmail" type="email" autocomplete="username"></label><label>Senha <input id="teacherPassword" type="password" autocomplete="current-password"></label><button class="primary" type="submit">Entrar no dashboard</button><button class="secondary" type="button" id="teacherLogoutBtn">Sair</button></form><div id="teacherAuthStatus" class="status-note"></div></div>
+        <div class="panel"><h3>Ações</h3><div class="action-stack"><button id="loadTeacherDataBtn" class="primary">Atualizar dados</button><button id="exportTeacherCsvBtn" class="secondary">Exportar resultados CSV</button><button id="exportSurveyCsvBtn" class="secondary">Exportar pesquisas CSV</button></div></div>
       </div>
       <div id="teacherCards" class="dashboard-cards"></div>
       <div class="panel"><h3>Desempenho por aluno</h3><div class="table-wrap"><table id="teacherTable"><thead><tr><th>Aluno</th><th>Turma</th><th>Tentativas</th><th>Média</th><th>Último acesso</th></tr></thead><tbody></tbody></table></div></div>
       <div class="panel"><h3>Dificuldades da turma</h3><div id="teacherSkills"></div></div>
     </section>
 
+    <section id="screen-idealizadores" class="screen">
+      <div class="section-head"><div><span class="eyebrow">CRÉDITOS DO PROJETO</span><h2>Idealizadores</h2><p>Responsáveis pela concepção pedagógica e pelo desenvolvimento digital do Dupla Exclusão.</p></div></div>
+      <div class="idealizadores-detalhados">
+        <article class="panel idealizador-detalhado"><div class="idealizador-badge">IDEALIZAÇÃO E COORDENAÇÃO PEDAGÓGICA</div><h3>Prof. Cleilson Paiva</h3><p><strong>Professor de História</strong> e responsável pela idealização pedagógica do projeto.</p><p>Atua na definição dos objetivos educacionais, organização das temáticas, articulação com a realidade escolar e acompanhamento das atividades desenvolvidas com os estudantes.</p></article>
+        <article class="panel idealizador-detalhado"><div class="idealizador-badge">COIDEALIZAÇÃO E DESENVOLVIMENTO DIGITAL</div><h3>Prof. Carlos André Tavares de Lima</h3><p><strong>Professor de Geografia</strong> e responsável pelo desenvolvimento digital e integração tecnológica do projeto.</p><p>Atua na estruturação da plataforma, recursos interativos, simulados, álbum digital, sistema de acompanhamento e integração dos dados educacionais.</p></article>
+      </div>
+      <div class="panel"><h3>Construção interdisciplinar</h3><p>O Dupla Exclusão integra História, Geografia, cidadania, inclusão, tecnologia educacional e acompanhamento pedagógico para trabalhar racismo, capacitismo, acessibilidade, convivência e direitos.</p></div>
+    </section>
+
     <section id="screen-sobre" class="screen">
       <div class="section-head"><div><span class="eyebrow">PROJETO</span><h2>Sobre</h2></div></div>
       <div class="about-grid">
         <article class="panel"><h3>Dupla Exclusão</h3><p><strong>Entre a cor e a condição: A realidade dos estudantes negros com deficiência na escola.</strong></p><p>Projeto educativo sobre racismo, capacitismo, acessibilidade, pertencimento, direitos e compromisso coletivo.</p></article>
-        <article class="panel"><h3>Idealizadores</h3><p><b>Prof. Cleilson Paiva</b></p><p><b>Prof. Carlos André Tavares de Lima</b></p></article>
         <article class="panel"><h3>Alunos do início do projeto</h3><p>Antônio Anselmo e Gabrielly Rodrigues • 8º ano.</p></article>
         <article class="panel"><h3>Privacidade</h3><p>Resultados e relatos individuais ficam em ambiente institucional restrito. Estudantes não acessam dados de outros estudantes.</p></article>
       </div>
