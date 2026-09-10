@@ -7,10 +7,15 @@ on:
     paths:
       - 'index.html'
       - 'style.css'
+      - 'tablet-v24.css'
       - 'app.js'
       - 'config.js'
       - 'auth-institucional.js'
       - 'dashboard-institucional.js'
+      - 'institutional-controls.js'
+      - 'tablet-v24.js'
+      - 'survey-v24.js'
+      - 'bullying-v24.js'
       - 'question-bank.js'
       - 'manifest.webmanifest'
       - 'service-worker.js'
@@ -51,12 +56,14 @@ jobs:
           set -e
           mkdir -p mobile/www/figurinhas mobile/www/icons
 
-          cp index.html style.css app.js config.js auth-institucional.js dashboard-institucional.js question-bank.js manifest.webmanifest service-worker.js mobile/www/
+          cp index.html style.css tablet-v24.css app.js config.js auth-institucional.js dashboard-institucional.js institutional-controls.js tablet-v24.js survey-v24.js bullying-v24.js question-bank.js manifest.webmanifest service-worker.js mobile/www/
           cp logo-pedro-queiroz.jpg mobile/www/
 
           if [ -f qrcode_album_dupla_exclusao.png ]; then cp qrcode_album_dupla_exclusao.png mobile/www/; fi
           if [ -f qrcode-album-dupla-exclusao.png ]; then cp qrcode-album-dupla-exclusao.png mobile/www/; fi
 
+          cp icon-192.png mobile/www/icon-192.png
+          cp icon-512.png mobile/www/icon-512.png
           cp icon-192.png mobile/www/icons/icon-192.png
           cp icon-512.png mobile/www/icons/icon-512.png
 
@@ -104,6 +111,18 @@ jobs:
       - name: Criar projeto Android
         working-directory: mobile
         run: npx cap add android
+
+      - name: Aplicar logo original ao Android
+        shell: bash
+        run: |
+          set -e
+          for d in mobile/android/app/src/main/res/mipmap-*; do
+            [ -d "$d" ] || continue
+            rm -f "$d"/ic_launcher.webp "$d"/ic_launcher_round.webp "$d"/ic_launcher_foreground.webp
+            cp icon-512.png "$d"/ic_launcher.png
+            cp icon-512.png "$d"/ic_launcher_round.png
+            cp icon-512.png "$d"/ic_launcher_foreground.png
+          done
 
       - name: Sincronizar arquivos web
         working-directory: mobile
