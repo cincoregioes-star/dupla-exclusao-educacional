@@ -24,6 +24,7 @@
       <button data-screen="pesquisas">Pesquisas</button>
       <button id="gameBtn">Game</button>
       <button data-screen="progresso">Meu progresso</button>
+      <button data-screen="denuncia">Relatar bullying / discriminação</button>
       <button data-screen="professor">Professor / Gestão</button>
       <button data-screen="sobre">Sobre</button>
       <button id="prepareOfflineBtn">Preparar uso offline</button>
@@ -106,6 +107,49 @@
       <div id="progressSummary" class="dashboard-cards"></div>
       <div class="panel"><h3>Evolução por simulado</h3><div id="studentAttempts"></div></div>
       <div class="panel"><h3>Habilidades que precisam de atenção</h3><div id="studentSkills"></div></div>
+    </section>
+
+    <section id="screen-denuncia" class="screen">
+      <div class="v24-report-shell">
+        <div class="v24-report-head">
+          <span class="eyebrow">ESCUTA PROTEGIDA</span>
+          <h2>Relatar bullying ou discriminação</h2>
+          <p>Use este espaço para informar algo que aconteceu com você, que você presenciou ou que um colega contou. O relato será acessado somente por equipe institucional autorizada.</p>
+        </div>
+        <form id="bullyingReportForm">
+          <div class="v24-report-column">
+            <label class="v24-report-label">Situação
+              <select id="bullyingContext">
+                <option value="aconteceu_comigo">Aconteceu comigo</option>
+                <option value="presenciei">Eu presenciei</option>
+                <option value="relato_de_colega">Um colega me contou</option>
+              </select>
+            </label>
+            <label class="v24-report-label">Data aproximada do fato<input id="bullyingDate" type="date"></label>
+            <div class="v24-report-label">
+              <span>Tipo de bullying / discriminação</span>
+              <div class="v24-type-grid">
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="verbal"><span>Verbal — xingamentos, apelidos, humilhações</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="fisico"><span>Físico — empurrões, agressões, danos a objetos</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="social"><span>Social — exclusão, isolamento, espalhar boatos</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="cyberbullying"><span>Cyberbullying — mensagens, grupos, redes sociais</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="racista"><span>Racista — ataques ligados à cor, raça ou origem</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="capacitista"><span>Capacitista — ataques ligados à deficiência</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="aparencia"><span>Aparência/corpo — peso, cabelo, roupa ou aparência</span></label>
+                <label class="v24-type-option"><input type="checkbox" name="bullyingType" value="outro"><span>Outro tipo de intimidação ou discriminação</span></label>
+              </div>
+            </div>
+          </div>
+          <div class="v24-report-column">
+            <label class="v24-report-label">Conte o que aconteceu
+              <textarea id="bullyingDescription" maxlength="3000" placeholder="Descreva o fato, onde aconteceu, quem estava presente e o que você considera importante."></textarea>
+            </label>
+            <div class="v24-report-note">Este espaço não substitui atendimento de emergência. Em risco imediato, procure um adulto responsável da escola no mesmo momento.</div>
+            <div id="bullyingReportStatus" class="status-note" role="status" aria-live="polite"></div>
+            <div class="v24-report-actions"><button type="button" class="secondary" data-screen="home">Cancelar</button><button type="submit" class="primary">Enviar relato</button></div>
+          </div>
+        </form>
+      </div>
     </section>
 
     <section id="screen-professor" class="screen institutional-locked">
