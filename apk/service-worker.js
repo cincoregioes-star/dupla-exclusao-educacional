@@ -1,15 +1,17 @@
-const CORE = "dupla-exclusao-web-core-v27";
-const FULL = "dupla-exclusao-web-full-v27";
+const CORE = "dupla-exclusao-apk-core-v27";
+const FULL = "dupla-exclusao-apk-full-v27";
 
 const core = [
-  "./","index.html","style.css","app.js","config.js",
+  "./","index.html","style.css","tablet-v24.css","app.js","config.js",
   "auth-institucional.js","dashboard-institucional.js","institutional-controls.js",
-  "question-bank.js","manifest.webmanifest","logo-pedro-queiroz.jpg",
+  "tablet-v24.js","survey-v24.js","bullying-v24.js","question-bank.js",
+  "album-data-v24.js","manifest.webmanifest","logo-pedro-queiroz.jpg",
   "icon-192.png","icon-512.png"
 ];
+const stickersFolder = Array.from({length:36},(_,i)=>`figurinhas/${String(i+1).padStart(2,"0")}.webp`);
 const stickersRoot = Array.from({length:36},(_,i)=>`${String(i+1).padStart(2,"0")}.webp`);
-const game=["game/index.html","game/style.css","game/script.js"];
-const optionalOffline=[...stickersRoot,...game,"qrcode_album_dupla_exclusao.png","qrcode-album-dupla-exclusao.png"];
+const game=["game/index.html","game/style.css","game/script.js","game/figurinhas/figurinhas-config.js","game/audio/bomba.mp3","game/audio/click.mp3","game/audio/erro.mp3","game/audio/foguete.mp3","game/audio/fundo.mp3","game/audio/match.mp3","game/audio/pa.mp3","game/audio/sparkle.mp3","game/audio/swipe.mp3","game/audio/vitoria.mp3"];
+const optionalOffline=[...stickersFolder,...stickersRoot,...game,"qrcode_album_dupla_exclusao.png","qrcode-album-dupla-exclusao.png"];
 
 async function addIndividually(cacheName,assets){const cache=await caches.open(cacheName);await Promise.allSettled(assets.map(async asset=>{try{const response=await fetch(asset,{cache:"reload"});if(response.ok)await cache.put(asset,response.clone());}catch(_){}}));}
 self.addEventListener("install",event=>{event.waitUntil(addIndividually(CORE,core).then(()=>self.skipWaiting()));});
