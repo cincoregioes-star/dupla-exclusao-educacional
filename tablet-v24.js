@@ -21,6 +21,45 @@
     return at;
   }
 
+  function installAndroidNavigationSafety(){
+    if(window.__DUPLA_NAV_SAFETY_V24_2__) return;
+    window.__DUPLA_NAV_SAFETY_V24_2__=true;
+
+    // O app usa telas fixas no viewport. Scroll vertical suave não é necessário e
+    // pode gerar travamento/renderização presa em alguns Android WebViews.
+    try{
+      window.scrollTo=function(){};
+      window.scroll=function(){};
+    }catch(_){ }
+
+    // Rota de segurança executada antes dos listeners do app principal.
+    // Se qualquer módulo falhar, o botão ainda troca a tela e fecha o menu.
+    document.addEventListener("click",e=>{
+      const btn=e.target?.closest?.("[data-screen]");
+      if(!btn) return;
+      const name=btn.dataset.screen;
+      if(!name) return;
+      const target=document.getElementById("screen-"+name);
+      if(!target) return;
+      $$(".screen").forEach(s=>s.classList.remove("active"));
+      target.classList.add("active");
+      const nav=$("#nav");
+      if(nav) nav.classList.remove("open");
+      const menu=$("#menuBtn");
+      if(menu) menu.setAttribute("aria-expanded","false");
+      setTimeout(updateArrows,0);
+    },true);
+
+    // Se ocorrer erro de JavaScript, registra localmente para diagnóstico sem
+    // expor dados do aluno nem bloquear a interface.
+    window.addEventListener("error",ev=>{
+      try{localStorage.setItem("dupla_last_js_error_v24_2",JSON.stringify({message:String(ev.message||"Erro JavaScript"),file:String(ev.filename||"").split("/").pop(),line:Number(ev.lineno||0),at:new Date().toISOString()}));}catch(_){ }
+    });
+    window.addEventListener("unhandledrejection",ev=>{
+      try{localStorage.setItem("dupla_last_js_error_v24_2",JSON.stringify({message:String(ev.reason?.message||ev.reason||"Promise rejeitada"),at:new Date().toISOString()}));}catch(_){ }
+    });
+  }
+
   function compactHome(){
     const home=$("#screen-home");
     const nav=$("#nav");
@@ -95,10 +134,6 @@
   }
 
   function navTo(name){
-    if(name==="denuncia"){
-      const custom=$('[data-v24-screen="denuncia"]');
-      if(custom){custom.click();return;}
-    }
     const b=$(`#nav [data-screen="${name}"]`) || $(`[data-screen="${name}"]`);
     b?.click();
   }
@@ -243,6 +278,7 @@
   }
 
   function init(){
+    installAndroidNavigationSafety();
     fixAssetPaths();compactHome();menuBehavior();addArrows();watchScreens();completionWatch();touchNavigation();
     setupQuizPager(false);setupSurveyPager(false);updateArrows();
     window.addEventListener("resize",updateArrows,{passive:true});
