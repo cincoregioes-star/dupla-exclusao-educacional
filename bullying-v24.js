@@ -34,37 +34,13 @@
     return txt?JSON.parse(txt):null;
   }
 
-  function installScreen(){
-    if($("#screen-denuncia"))return;
-    const section=document.createElement("section");section.id="screen-denuncia";section.className="screen";
-    section.innerHTML=`<div class="v24-report-shell">
-      <div class="v24-report-head"><span class="eyebrow">ESCUTA PROTEGIDA</span><h2>Relatar bullying ou discriminação</h2><p>Use este espaço para informar algo que aconteceu com você, que você presenciou ou que um colega contou. O relato será acessado somente por equipe institucional autorizada.</p></div>
-      <form id="bullyingReportForm">
-        <div class="v24-report-column">
-          <label class="v24-report-label">Situação<select id="bullyingContext"><option value="aconteceu_comigo">Aconteceu comigo</option><option value="presenciei">Eu presenciei</option><option value="relato_de_colega">Um colega me contou</option></select></label>
-          <label class="v24-report-label">Data aproximada do fato<input id="bullyingDate" type="date"></label>
-          <div class="v24-report-label"><span>Tipo de bullying / discriminação</span><div class="v24-type-grid">${TYPES.map(([v,l])=>`<label class="v24-type-option"><input type="checkbox" name="bullyingType" value="${v}"><span>${l}</span></label>`).join("")}</div></div>
-        </div>
-        <div class="v24-report-column">
-          <label class="v24-report-label">Conte o que aconteceu<textarea id="bullyingDescription" maxlength="3000" placeholder="Descreva o fato, onde aconteceu, quem estava presente e o que você considera importante."></textarea></label>
-          <div class="v24-report-note">Este espaço não substitui atendimento de emergência. Em risco imediato, procure um adulto responsável da escola no mesmo momento.</div>
-          <div id="bullyingReportStatus" class="status-note"></div>
-          <div class="v24-report-actions"><button type="button" class="secondary" data-screen="home">Cancelar</button><button type="submit" class="primary">Enviar relato</button></div>
-        </div>
-      </form>
-    </div>`;
-    $("main")?.appendChild(section);
-    section.querySelector('[data-screen="home"]')?.addEventListener("click",()=>$("#nav [data-screen='home']")?.click());
-    $("#bullyingReportForm")?.addEventListener("submit",submitReport);
-
-    const nav=$("#nav");
-    if(nav&&!nav.querySelector('[data-v24-screen="denuncia"]')){
-      const b=document.createElement("button");b.type="button";b.dataset.v24Screen="denuncia";b.textContent="Relatar bullying / discriminação";
-      b.addEventListener("click",()=>{
-        $$(".screen").forEach(s=>s.classList.remove("active"));section.classList.add("active");nav.classList.remove("open");window.DuplaV24?.updateArrows?.();
-      });
-      const professor=nav.querySelector('[data-screen="professor"]');
-      professor?.insertAdjacentElement("beforebegin",b) || nav.appendChild(b);
+  function ensureScreenBindings(){
+    const section=$("#screen-denuncia");
+    if(!section)return;
+    const form=$("#bullyingReportForm");
+    if(form && form.dataset.bound!=="1"){
+      form.addEventListener("submit",submitReport);
+      form.dataset.bound="1";
     }
   }
 
@@ -92,10 +68,11 @@
     const types=$$('input[name="bullyingType"]:checked').map(x=>x.value);
     const desc=$("#bullyingDescription")?.value.trim()||"";
     const status=$("#bullyingReportStatus");
+    if(!status)return;
     if(!types.length){status.textContent="Selecione pelo menos um tipo de bullying/discriminação.";return;}
     if(desc.length<10){status.textContent="Descreva o fato com pelo menos 10 caracteres.";return;}
     const p=profile(),s=appState();
-    const payload={school_code:(CFG.supabase||{}).schoolCode||"PQF",device_id:s.deviceId||null,student_code:p.studentCode,student_name:p.name,class_group:p.classGroup,report_context:$("#bullyingContext").value,bullying_types:types,occurrence_date:$("#bullyingDate").value||null,description:desc,status:"novo",app_version:"v24"};
+    const payload={school_code:(CFG.supabase||{}).schoolCode||"PQF",device_id:s.deviceId||null,student_code:p.studentCode,student_name:p.name,class_group:p.classGroup,report_context:$("#bullyingContext")?.value||"aconteceu_comigo",bullying_types:types,occurrence_date:$("#bullyingDate")?.value||null,description:desc,status:"novo",app_version:"v24.1"};
     status.textContent="Enviando relato...";
     try{
       if(!navigator.onLine)throw new Error("offline");
@@ -168,7 +145,7 @@
     screen.appendChild(sec);$("#openBullyingAlerts")?.addEventListener("click",()=>openAlerts());
   }
 
-  function init(){installScreen();installBell();installTeacherSection();window.addEventListener("online",()=>{flushQueue();updateBell()});const obs=new MutationObserver(()=>updateBell());obs.observe(document.body,{attributes:true,attributeFilter:["data-institutional-role"]});setInterval(()=>{if(document.visibilityState==='visible')updateBell()},30000);flushQueue();updateBell();}
+  function init(){ensureScreenBindings();installBell();installTeacherSection();window.addEventListener("online",()=>{flushQueue();updateBell()});const obs=new MutationObserver(()=>updateBell());obs.observe(document.body,{attributes:true,attributeFilter:["data-institutional-role"]});setInterval(()=>{if(document.visibilityState==='visible')updateBell()},30000);flushQueue();updateBell();}
   window.DuplaBullyingV24={updateBell,openAlerts,flushQueue};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
