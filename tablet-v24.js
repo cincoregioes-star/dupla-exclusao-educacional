@@ -1,6 +1,7 @@
 (() => {
   "use strict";
   const STATE_KEY = "dupla_exclusao_state_v2";
+  const ALBUM_COMPLETE_KEY = "dupla_album_completed_at_v24";
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   let quizIndex = 0;
@@ -13,14 +14,18 @@
     const pasted = state().pasted || {};
     return Object.values(pasted).filter(Boolean).length >= 36;
   }
-  function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));}
+  function ensureAlbumCompletedAt(){
+    if(!albumComplete()) return null;
+    let at=localStorage.getItem(ALBUM_COMPLETE_KEY);
+    if(!at){at=new Date().toISOString();localStorage.setItem(ALBUM_COMPLETE_KEY,at);}
+    return at;
+  }
 
   function compactHome(){
     const home=$("#screen-home");
     const nav=$("#nav");
     if(!home||!nav||home.dataset.v24==="1") return;
 
-    // Move botões que já possuem listeners do app, preservando o funcionamento.
     const profileBtn=home.querySelector('[data-screen="perfil"]');
     if(profileBtn){
       profileBtn.textContent="Identificar aluno";
@@ -100,9 +105,8 @@
 
   function scrollHorizontal(el,dir){
     if(!el)return false;
-    const before=el.scrollLeft;
     el.scrollBy({left:dir*Math.max(280,el.clientWidth*.82),behavior:"smooth"});
-    return el.scrollWidth>el.clientWidth+8 || before!==el.scrollLeft;
+    return el.scrollWidth>el.clientWidth+8;
   }
 
   function step(dir){
@@ -127,7 +131,7 @@
     if(reset)quizIndex=0;
     quizIndex=Math.max(0,Math.min(cards.length-1,quizIndex));
     cards.forEach((c,i)=>c.classList.toggle("v24-active-question",i===quizIndex));
-    const submit=$("#quizForm button[type="+'"submit"'+"]");
+    const submit=$('#quizForm button[type="submit"]');
     if(submit)submit.hidden=quizIndex!==cards.length-1;
     updateQuizLabel();
   }
@@ -149,14 +153,13 @@
     cards.forEach((c,i)=>c.classList.toggle("v24-active-question",i===surveyIndex));
     const save=$("#surveySaveBtn");
     if(save)save.hidden=surveyIndex!==cards.length-1;
-    updateSurveyLabel();
+    updateArrows();
   }
   function stepSurvey(dir){
     const cards=$$("#surveyQuestions .survey-question");if(!cards.length)return;
     surveyIndex=Math.max(0,Math.min(cards.length-1,surveyIndex+dir));
     setupSurveyPager(false);
   }
-  function updateSurveyLabel(){updateArrows();}
 
   function updateArrows(){
     const prev=$("#v24Prev"),next=$("#v24Next"),label=$("#v24PagerLabel"),s=currentScreen();
@@ -201,21 +204,25 @@
     if(quizQ)new MutationObserver(()=>setTimeout(()=>setupQuizPager(true),0)).observe(quizQ,{childList:true});
   }
 
+  function markAlbumComplete(){
+    if(!albumComplete())return;
+    ensureAlbumCompletedAt();
+    const surveyBtn=$("#nav [data-screen='pesquisas']");
+    if(surveyBtn&&!surveyBtn.dataset.v24Complete){surveyBtn.dataset.v24Complete="1";surveyBtn.textContent="Pesquisas • Final liberada ✓";}
+    window.dispatchEvent(new CustomEvent("dupla:album-complete"));
+  }
+
   function completionWatch(){
     document.addEventListener("click",e=>{
       if(!e.target.closest(".paste-btn"))return;
       setTimeout(()=>{
         if(!albumComplete())return;
-        const surveyBtn=$("#nav [data-screen='pesquisas']");
-        if(surveyBtn&&!surveyBtn.dataset.v24Complete){surveyBtn.dataset.v24Complete="1";surveyBtn.textContent="Pesquisas • Final liberada ✓";}
-        window.dispatchEvent(new CustomEvent("dupla:album-complete"));
+        markAlbumComplete();
         const toast=$("#toast");
         if(toast){toast.textContent="Álbum completo! A Pesquisa Final foi liberada automaticamente.";toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),3300);}
       },80);
     },true);
-    if(albumComplete()){
-      const b=$("#nav [data-screen='pesquisas']");if(b){b.dataset.v24Complete="1";b.textContent="Pesquisas • Final liberada ✓";}
-    }
+    if(albumComplete())markAlbumComplete();
   }
 
   function touchNavigation(){
@@ -241,6 +248,6 @@
     window.addEventListener("resize",updateArrows,{passive:true});
   }
 
-  window.DuplaV24={albumComplete,setupSurveyPager,updateArrows,navTo};
+  window.DuplaV24={albumComplete,ensureAlbumCompletedAt,setupSurveyPager,updateArrows,navTo};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
