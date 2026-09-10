@@ -118,6 +118,13 @@ jobs:
         shell: bash
         run: |
           set -e
+          # Em Android 8+ os XMLs de mipmap-anydpi-v26 têm prioridade sobre os
+          # bitmaps por densidade. Removemos esses overrides para preservar
+          # exatamente o ícone DE amarelo original da primeira versão.
+          rm -f mobile/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          rm -f mobile/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          rm -f mobile/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_foreground.xml
+
           for d in \
             mobile/android/app/src/main/res/mipmap-mdpi \
             mobile/android/app/src/main/res/mipmap-hdpi \
@@ -128,7 +135,6 @@ jobs:
             rm -f "$d"/ic_launcher.webp "$d"/ic_launcher_round.webp "$d"/ic_launcher_foreground.webp
             cp icon-512.png "$d"/ic_launcher.png
             cp icon-512.png "$d"/ic_launcher_round.png
-            cp icon-512.png "$d"/ic_launcher_foreground.png
           done
 
       - name: Sincronizar arquivos web
