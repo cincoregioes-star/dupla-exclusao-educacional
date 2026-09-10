@@ -118,7 +118,12 @@ jobs:
         shell: bash
         run: |
           set -e
-          for d in mobile/android/app/src/main/res/mipmap-*; do
+          for d in \
+            mobile/android/app/src/main/res/mipmap-mdpi \
+            mobile/android/app/src/main/res/mipmap-hdpi \
+            mobile/android/app/src/main/res/mipmap-xhdpi \
+            mobile/android/app/src/main/res/mipmap-xxhdpi \
+            mobile/android/app/src/main/res/mipmap-xxxhdpi; do
             [ -d "$d" ] || continue
             rm -f "$d"/ic_launcher.webp "$d"/ic_launcher_round.webp "$d"/ic_launcher_foreground.webp
             cp icon-512.png "$d"/ic_launcher.png
