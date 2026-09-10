@@ -1,20 +1,24 @@
-const CORE = "dupla-exclusao-core-v12";
-const FULL = "dupla-exclusao-full-v12";
+const CORE = "dupla-exclusao-core-v24";
+const FULL = "dupla-exclusao-full-v24";
 
 const core = [
   "./",
   "index.html",
   "style.css",
+  "tablet-v24.css",
   "app.js",
   "config.js",
   "auth-institucional.js",
   "dashboard-institucional.js",
   "institutional-controls.js",
+  "tablet-v24.js",
+  "survey-v24.js",
+  "bullying-v24.js",
   "question-bank.js",
   "manifest.webmanifest",
   "logo-pedro-queiroz.jpg",
-  "icons/icon-192.png",
-  "icons/icon-512.png"
+  "icon-192.png",
+  "icon-512.png"
 ];
 
 const stickers = Array.from({ length: 36 }, (_, i) =>
