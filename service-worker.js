@@ -1,5 +1,5 @@
-const CORE = "dupla-exclusao-core-v25";
-const FULL = "dupla-exclusao-full-v25";
+const CORE = "dupla-exclusao-core-v26";
+const FULL = "dupla-exclusao-full-v26";
 
 const core = [
   "./","index.html","style.css","tablet-v24.css","app.js","config.js",
