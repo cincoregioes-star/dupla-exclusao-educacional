@@ -134,24 +134,29 @@
   }
 
   function typeLabel(v){return TYPES.find(x=>x[0]===v)?.[1]||v}
-  async function markRead(id){
+  async function markAllRead(rows){
     const session=sess();if(!session?.access_token)return;
-    await api(`/rest/v1/bullying_reports?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"lido",read_at:new Date().toISOString(),read_by:session.user?.id||null,updated_at:new Date().toISOString()})},session.access_token);
+    const novos=rows.filter(r=>r.status==="novo");
+    for(const item of novos){
+      await api(`/rest/v1/bullying_reports?id=eq.${encodeURIComponent(item.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"lido",read_at:new Date().toISOString(),read_by:session.user?.id||null,updated_at:new Date().toISOString()})},session.access_token);
+    }
   }
   async function resolveReport(id){
     const note=$(`#resolution-${CSS.escape(id)}`)?.value.trim()||"";
     const session=sess();if(!session?.access_token)return;
     try{
       await api(`/rest/v1/bullying_reports?id=eq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"concluido",resolved_at:new Date().toISOString(),resolved_by:session.user?.id||null,resolution_note:note||null,updated_at:new Date().toISOString()})},session.access_token);
-      await openAlerts();
+      await openAlerts(false);
     }catch(e){alert("Não foi possível concluir este alerta.");}
   }
 
-  async function openAlerts(){
+  async function openAlerts(markSeen=true){
     const p=instProfile();if(!["admin","gestor","professor"].includes(p?.role))return;
     let rows=[];try{rows=await fetchReports()}catch(e){alert("Não foi possível carregar os alertas.");return;}
-    const firstNew=rows.find(r=>r.status==="novo");if(firstNew){try{await markRead(firstNew.id);rows=await fetchReports()}catch{}}
-    const html=`<div class="v24-alert-panel"><h2>🔔 Alertas de bullying e discriminação</h2><p>Novos relatos piscam silenciosamente no sino. Ao abrir, ficam em acompanhamento. Ao concluir, somem do alerta, mas permanecem arquivados com data, aluno, relato e encaminhamento.</p>${rows.length?rows.map(r=>`<div class="v24-report-row ${r.status==='novo'?'v24-new':r.status==='concluido'?'v24-done':''}"><div class="v24-report-meta"><b>${esc(r.student_name)}</b><span>${esc(r.class_group)}</span><span>${new Date(r.created_at).toLocaleString('pt-BR')}</span><span>${r.status==='novo'?'NOVO':r.status==='lido'?'EM ACOMPANHAMENTO':'CONCLUÍDO'}</span></div><div class="v24-report-types">${(r.bullying_types||[]).map(t=>`<span>${esc(typeLabel(t))}</span>`).join('')}</div><div class="v24-report-text">${esc(r.description)}</div>${r.occurrence_date?`<small>Data aproximada do fato: ${new Date(r.occurrence_date+'T12:00:00').toLocaleDateString('pt-BR')}</small>`:''}${r.status!=='concluido'?`<textarea id="resolution-${esc(r.id)}" class="v24-resolution" placeholder="Registrar encaminhamento/conclusão (opcional)"></textarea><div class="v24-report-toolbar"><button class="primary v24-resolve" data-id="${esc(r.id)}">Concluir atendimento</button></div>`:`<div class="status-note">Concluído em ${r.resolved_at?new Date(r.resolved_at).toLocaleString('pt-BR'):'—'}${r.resolution_note?` • ${esc(r.resolution_note)}`:''}</div>`}</div>`).join(''):'<p>Nenhum relato registrado.</p>'}</div>`;
+    if(markSeen&&rows.some(r=>r.status==="novo")){
+      try{await markAllRead(rows);rows=await fetchReports()}catch(e){console.warn("mark bullying read",e);}
+    }
+    const html=`<div class="v24-alert-panel"><h2>🔔 Alertas de bullying e discriminação</h2><p>O sino pisca somente enquanto houver relato ainda não visualizado. Depois da leitura, o alerta permanece silencioso aguardando conclusão. Ao concluir, ele sai do sino, mas fica arquivado com data, aluno, relato e encaminhamento.</p>${rows.length?rows.map(r=>`<div class="v24-report-row ${r.status==='novo'?'v24-new':r.status==='concluido'?'v24-done':''}"><div class="v24-report-meta"><b>${esc(r.student_name)}</b><span>${esc(r.class_group)}</span><span>${new Date(r.created_at).toLocaleString('pt-BR')}</span><span>${r.status==='novo'?'NOVO':r.status==='lido'?'EM ACOMPANHAMENTO':'CONCLUÍDO'}</span></div><div class="v24-report-types">${(r.bullying_types||[]).map(t=>`<span>${esc(typeLabel(t))}</span>`).join('')}</div><div class="v24-report-text">${esc(r.description)}</div>${r.occurrence_date?`<small>Data aproximada do fato: ${new Date(r.occurrence_date+'T12:00:00').toLocaleDateString('pt-BR')}</small>`:''}${r.status!=='concluido'?`<textarea id="resolution-${esc(r.id)}" class="v24-resolution" placeholder="Registrar encaminhamento/conclusão (opcional)"></textarea><div class="v24-report-toolbar"><button class="primary v24-resolve" data-id="${esc(r.id)}">Concluir atendimento</button></div>`:`<div class="status-note">Concluído em ${r.resolved_at?new Date(r.resolved_at).toLocaleString('pt-BR'):'—'}${r.resolution_note?` • ${esc(r.resolution_note)}`:''}</div>`}</div>`).join(''):'<p>Nenhum relato registrado.</p>'}</div>`;
     const modal=$("#modal"),content=$("#modalContent");if(modal&&content){content.innerHTML=html;modal.classList.remove("hidden");modal.setAttribute("aria-hidden","false");content.querySelectorAll(".v24-resolve").forEach(b=>b.addEventListener("click",()=>resolveReport(b.dataset.id)));}
     updateBell();
   }
@@ -159,8 +164,8 @@
   function installTeacherSection(){
     const screen=$("#screen-professor");if(!screen||$("#bullyingInstitutionalSection"))return;
     const sec=document.createElement("section");sec.id="bullyingInstitutionalSection";sec.className="panel institutional-protected v24-alert-panel";
-    sec.innerHTML='<span class="eyebrow">PROTEÇÃO E CONVIVÊNCIA</span><h3>Alertas de bullying e discriminação</h3><p class="status-note">O sino aparece quando houver relato novo ou em acompanhamento.</p><button id="openBullyingAlerts" class="primary" type="button">Abrir central de alertas</button>';
-    screen.appendChild(sec);$("#openBullyingAlerts")?.addEventListener("click",openAlerts);
+    sec.innerHTML='<span class="eyebrow">PROTEÇÃO E CONVIVÊNCIA</span><h3>Alertas de bullying e discriminação</h3><p class="status-note">O sino pisca quando houver relato novo e permanece silencioso enquanto existir atendimento pendente.</p><button id="openBullyingAlerts" class="primary" type="button">Abrir central de alertas</button>';
+    screen.appendChild(sec);$("#openBullyingAlerts")?.addEventListener("click",()=>openAlerts());
   }
 
   function init(){installScreen();installBell();installTeacherSection();window.addEventListener("online",()=>{flushQueue();updateBell()});const obs=new MutationObserver(()=>updateBell());obs.observe(document.body,{attributes:true,attributeFilter:["data-institutional-role"]});setInterval(()=>{if(document.visibilityState==='visible')updateBell()},30000);flushQueue();updateBell();}
