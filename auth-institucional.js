@@ -4,6 +4,7 @@
   const CFG = window.APP_CONFIG || {};
   const SESSION_KEY = "dupla_exclusao_teacher_session_v1";
   const PROFILE_KEY = "dupla_exclusao_institutional_profile_v1";
+  const SAVED_USERNAME_KEY = "dupla_exclusao_saved_username_v1";
   const ROLE_LABELS = {
     admin: "Administrador do Sistema",
     gestor: "Gestor Escolar",
@@ -11,8 +12,6 @@
     professor: "Professor"
   };
 
-  // A tela trabalha apenas com nome de usuário. O e-mail abaixo é um identificador
-  // técnico interno exigido pelo Supabase Auth e nunca precisa ser digitado pelos usuários.
   const USERNAME_TO_AUTH_EMAIL = {
     "cincoregioes@gmail.com": "cincoregioes@gmail.com",
     "cleilson paiva": "cleilson.pqf@example.com",
@@ -53,8 +52,7 @@
   const normalizeUsername = value => String(value || "").trim().toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
 
   function resolveAuthEmail(username){
-    const normalized = normalizeUsername(username);
-    return USERNAME_TO_AUTH_EMAIL[normalized] || "";
+    return USERNAME_TO_AUTH_EMAIL[normalizeUsername(username)] || "";
   }
 
   function supabaseReady(){
@@ -155,6 +153,7 @@
       .institutional-user-card{margin-top:10px;border:1px solid #2d8a60;background:rgba(34,197,94,.08);border-radius:12px;padding:11px}.institutional-user-card strong{color:#bbf7d0}.institutional-user-card small{display:block;color:#cbd5e1;margin-top:4px}
       .institutional-setup{margin-top:10px;border:1px solid #80651a;background:rgba(250,204,21,.08);color:#fde68a;border-radius:12px;padding:10px;line-height:1.4;font-size:.82rem}
       .institutional-lock-message{max-width:760px;margin:14px auto 0;background:#09182b;border:1px solid #36577d;border-radius:14px;padding:12px;color:#cbd5e1;text-align:center}
+      .institutional-remember{display:flex;align-items:flex-start;gap:9px;margin:2px 0 12px;padding:10px 12px;border:1px solid #36577d;border-radius:12px;background:#09182b;color:#dbeafe}.institutional-remember input{width:18px;height:18px;margin-top:2px;accent-color:#facc15}.institutional-remember span{display:block;font-weight:800}.institutional-remember small{display:block;margin-top:3px;color:#94a3b8;font-weight:500;line-height:1.35}
       .role-admin{border-color:#facc15!important;color:#fde68a!important}.role-gestor{border-color:#38bdf8!important;color:#bae6fd!important}.role-coordenador{border-color:#22c55e!important;color:#bbf7d0!important}.role-professor{border-color:#a78bfa!important;color:#ddd6fe!important}
       #screen-professor.institutional-locked .teacher-grid{display:block}
       #screen-professor.institutional-locked .teacher-grid > .panel:not(:first-child){display:none!important}
@@ -188,15 +187,26 @@
         usernameInput.type = "text";
         usernameInput.inputMode = "text";
         usernameInput.autocomplete = "username";
+        usernameInput.name = "username";
         usernameInput.placeholder = "Ex.: Cleilson Paiva ou Professor 01";
         usernameInput.setAttribute("aria-label", "Nome de usuário");
       }
       const passwordInput = $("#teacherPassword");
-      if(passwordInput) passwordInput.autocomplete = "current-password";
+      if(passwordInput){
+        passwordInput.autocomplete = "current-password";
+        passwordInput.name = "password";
+      }
       const submit = form.querySelector('button[type="submit"]');
       if(submit) submit.textContent = "Entrar no dashboard";
       const logout = $("#teacherLogoutBtn");
       if(logout) logout.textContent = "Sair";
+
+      if(!form.querySelector("#rememberInstitutionalAccess")){
+        const remember = document.createElement("label");
+        remember.className = "institutional-remember";
+        remember.innerHTML = '<input id="rememberInstitutionalAccess" type="checkbox" checked><span>Salvar acesso neste dispositivo<small>No celular e no computador, o nome de usuário fica lembrado e a sessão permanece ativa. O gerenciador de senhas do aparelho/navegador pode guardar a senha.</small></span>';
+        submit?.insertAdjacentElement("beforebegin", remember);
+      }
     }
 
     if(loginPanel && !loginPanel.querySelector(".institutional-role-row")){
@@ -218,6 +228,12 @@
     }
 
     markProtectedNodes();
+  }
+
+  function restoreRememberedUser(){
+    const remembered = localStorage.getItem(SAVED_USERNAME_KEY) || "";
+    if(remembered && $("#teacherEmail") && !$("#teacherEmail").value) $("#teacherEmail").value = remembered;
+    if($("#rememberInstitutionalAccess")) $("#rememberInstitutionalAccess").checked = Boolean(remembered) || true;
   }
 
   function markProtectedNodes(){
@@ -291,10 +307,12 @@
       if(status) status.textContent = "Autenticando acesso institucional...";
       try{
         const {profile} = await login(username, password);
+        if($("#rememberInstitutionalAccess")?.checked) localStorage.setItem(SAVED_USERNAME_KEY, username);
+        else localStorage.removeItem(SAVED_USERNAME_KEY);
         renderProfile();
         if(status) status.innerHTML = `<div class="institutional-user-card"><strong>${esc(profile.full_name)}</strong><small>${esc(ROLE_LABELS[profile.role])} • acesso autorizado</small></div>`;
         setTimeout(() => $("#loadTeacherDataBtn")?.click(), 80);
-      } catch(error){
+      } catch {
         clear();
         renderProfile();
         if(status) status.textContent = "Acesso não autorizado. Confira o nome de usuário e a senha.";
@@ -306,8 +324,7 @@
       event.stopImmediatePropagation();
       clear();
       renderProfile();
-      if($("#teacherEmail")) $("#teacherEmail").value = "";
-      if($("#teacherPassword")) $("#teacherPassword").value = "";
+      restoreRememberedUser();
       const status = $("#teacherAuthStatus");
       if(status) status.textContent = "Sessão institucional encerrada.";
     }, true);
@@ -341,12 +358,13 @@
   function init(){
     injectStyles();
     prepareScreen();
+    restoreRememberedUser();
     addAdminArea();
     interceptLogin();
     observeProtected();
     renderProfile();
     restore();
-    $$("[data-screen='professor']").forEach(btn => btn.addEventListener("click", () => setTimeout(renderProfile, 0)));
+    $$("[data-screen='professor']").forEach(btn => btn.addEventListener("click", () => setTimeout(() => { renderProfile(); restoreRememberedUser(); }, 0)));
   }
 
   window.DuplaInstitutionalAuth = {
