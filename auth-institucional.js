@@ -11,12 +11,51 @@
     professor: "Professor"
   };
 
+  // A tela trabalha apenas com nome de usuário. O e-mail abaixo é um identificador
+  // técnico interno exigido pelo Supabase Auth e nunca precisa ser digitado pelos usuários.
+  const USERNAME_TO_AUTH_EMAIL = {
+    "cincoregioes@gmail.com": "cincoregioes@gmail.com",
+    "cleilson paiva": "cleilson.pqf@example.com",
+    "cleilson": "cleilson.pqf@example.com",
+    "everaldo": "everaldo.pqf@example.com",
+    "professor 1": "professor01.pqf@example.com",
+    "professor 01": "professor01.pqf@example.com",
+    "professor1": "professor01.pqf@example.com",
+    "professor01": "professor01.pqf@example.com",
+    "professor 2": "professor02.pqf@example.com",
+    "professor 02": "professor02.pqf@example.com",
+    "professor2": "professor02.pqf@example.com",
+    "professor02": "professor02.pqf@example.com",
+    "professor 3": "professor03.pqf@example.com",
+    "professor 03": "professor03.pqf@example.com",
+    "professor3": "professor03.pqf@example.com",
+    "professor03": "professor03.pqf@example.com",
+    "professor 4": "professor04.pqf@example.com",
+    "professor 04": "professor04.pqf@example.com",
+    "professor4": "professor04.pqf@example.com",
+    "professor04": "professor04.pqf@example.com",
+    "professor 5": "professor05.pqf@example.com",
+    "professor 05": "professor05.pqf@example.com",
+    "professor5": "professor05.pqf@example.com",
+    "professor05": "professor05.pqf@example.com",
+    "professor 6": "professor06.pqf@example.com",
+    "professor 06": "professor06.pqf@example.com",
+    "professor6": "professor06.pqf@example.com",
+    "professor06": "professor06.pqf@example.com"
+  };
+
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const read = key => { try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; } };
   const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
   const clear = () => { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(PROFILE_KEY); };
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+  const normalizeUsername = value => String(value || "").trim().toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
+
+  function resolveAuthEmail(username){
+    const normalized = normalizeUsername(username);
+    return USERNAME_TO_AUTH_EMAIL[normalized] || "";
+  }
 
   function supabaseReady(){
     const s = CFG.supabase || {};
@@ -30,9 +69,9 @@
     headers.Authorization = `Bearer ${token || s.anonKey}`;
     const response = await fetch(s.url.replace(/\/$/, "") + path, {...opts, headers});
     const text = await response.text();
-    if(!response.ok) {
+    if(!response.ok){
       let msg = text;
-      try { msg = JSON.parse(text)?.msg || JSON.parse(text)?.message || text; } catch {}
+      try { const parsed = JSON.parse(text); msg = parsed?.msg || parsed?.message || text; } catch {}
       throw new Error(msg || `HTTP ${response.status}`);
     }
     return text ? JSON.parse(text) : null;
@@ -51,10 +90,10 @@
     if(!session?.access_token) return null;
     if(Number(session.expires_at || 0) > Date.now() + 60_000) return session;
     if(!session.refresh_token){ clear(); return null; }
-    try {
+    try{
       const auth = await api("/auth/v1/token?grant_type=refresh_token", {
         method: "POST",
-        body: JSON.stringify({ refresh_token: session.refresh_token })
+        body: JSON.stringify({refresh_token: session.refresh_token})
       });
       session = {
         ...session,
@@ -80,7 +119,9 @@
     return profile;
   }
 
-  async function login(email, password){
+  async function login(username, password){
+    const email = resolveAuthEmail(username);
+    if(!email) throw new Error("Nome de usuário não cadastrado.");
     const auth = await api("/auth/v1/token?grant_type=password", {
       method: "POST",
       body: JSON.stringify({email, password})
@@ -93,7 +134,8 @@
       refresh_token: auth.refresh_token,
       user: auth.user,
       expires_at: Date.now() + Number(auth.expires_in || 3600) * 1000,
-      institutional_profile: profile
+      institutional_profile: profile,
+      institutional_username: String(username || "").trim()
     };
     write(SESSION_KEY, session);
     write(PROFILE_KEY, profile);
@@ -140,7 +182,17 @@
     const form = $("#teacherLoginForm");
     if(form){
       const firstLabel = form.querySelector("label:first-of-type");
-      if(firstLabel?.firstChild) firstLabel.firstChild.textContent = "E-mail institucional ";
+      if(firstLabel?.firstChild) firstLabel.firstChild.textContent = "Nome de usuário ";
+      const usernameInput = $("#teacherEmail");
+      if(usernameInput){
+        usernameInput.type = "text";
+        usernameInput.inputMode = "text";
+        usernameInput.autocomplete = "username";
+        usernameInput.placeholder = "Ex.: Cleilson Paiva ou Professor 01";
+        usernameInput.setAttribute("aria-label", "Nome de usuário");
+      }
+      const passwordInput = $("#teacherPassword");
+      if(passwordInput) passwordInput.autocomplete = "current-password";
       const submit = form.querySelector('button[type="submit"]');
       if(submit) submit.textContent = "Entrar no dashboard";
       const logout = $("#teacherLogoutBtn");
@@ -172,15 +224,12 @@
     const screen = $("#screen-professor");
     if(!screen) return;
     const teacherGrid = screen.querySelector(".teacher-grid");
-    if(teacherGrid){
-      [...teacherGrid.children].slice(1).forEach(el => el.classList.add("institutional-protected"));
-    }
+    if(teacherGrid) [...teacherGrid.children].slice(1).forEach(el => el.classList.add("institutional-protected"));
     [...screen.children].forEach(el => {
       if(el.classList.contains("section-head") || el === teacherGrid || el.classList.contains("institutional-lock-message")) return;
       el.classList.add("institutional-protected");
     });
-    const dynamic = $("#institutionalDashboard");
-    dynamic?.classList.add("institutional-protected");
+    $("#institutionalDashboard")?.classList.add("institutional-protected");
   }
 
   function renderProfile(){
@@ -199,7 +248,7 @@
       document.body.removeAttribute("data-institutional-role");
       if(status){
         status.innerHTML = supabaseReady()
-          ? "Informe seu e-mail institucional e senha para acessar os dados."
+          ? "Informe seu nome de usuário e senha para acessar os dados."
           : '<div class="institutional-setup"><b>Integração institucional não configurada.</b></div>';
       }
       return;
@@ -235,19 +284,20 @@
         if(status) status.innerHTML = '<div class="institutional-setup"><b>Supabase ainda não conectado.</b></div>';
         return;
       }
-      const email = $("#teacherEmail")?.value.trim() || "";
+      const username = $("#teacherEmail")?.value.trim() || "";
       const password = $("#teacherPassword")?.value || "";
-      if(!email || !password){ if(status) status.textContent = "Informe e-mail e senha."; return; }
+      if(!username || !password){ if(status) status.textContent = "Informe nome de usuário e senha."; return; }
+      if(!resolveAuthEmail(username)){ if(status) status.textContent = "Nome de usuário não cadastrado."; return; }
       if(status) status.textContent = "Autenticando acesso institucional...";
-      try {
-        const {profile} = await login(email, password);
+      try{
+        const {profile} = await login(username, password);
         renderProfile();
         if(status) status.innerHTML = `<div class="institutional-user-card"><strong>${esc(profile.full_name)}</strong><small>${esc(ROLE_LABELS[profile.role])} • acesso autorizado</small></div>`;
         setTimeout(() => $("#loadTeacherDataBtn")?.click(), 80);
       } catch(error){
         clear();
         renderProfile();
-        if(status) status.textContent = `Acesso não autorizado: ${error.message}`;
+        if(status) status.textContent = "Acesso não autorizado. Confira o nome de usuário e a senha.";
       }
     }, true);
 
@@ -267,7 +317,7 @@
     if(!supabaseReady()){ renderProfile(); return; }
     let session = await refreshSessionIfNeeded();
     if(!session){ renderProfile(); return; }
-    try {
+    try{
       const profile = await fetchProfile(session.access_token, session.user?.id);
       session.institutional_profile = profile;
       write(SESSION_KEY, session);
@@ -283,9 +333,7 @@
     if(!screen) return;
     const observer = new MutationObserver(() => {
       markProtectedNodes();
-      if(!isAuthenticated()) {
-        $$("#screen-professor .institutional-protected").forEach(el => { el.hidden = true; });
-      }
+      if(!isAuthenticated()) $$("#screen-professor .institutional-protected").forEach(el => { el.hidden = true; });
     });
     observer.observe(screen, {childList:true, subtree:false});
   }
